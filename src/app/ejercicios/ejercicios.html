@@ -1,0 +1,743 @@
+<div class="ejercicios-catalogo-container">
+  <div class="seccion-cabecera">
+    <h1>{{ acc.t('ejercicios.titulo') }}</h1>
+    <p>{{ acc.t('ejercicios.subtitulo') }}</p>
+  </div>
+
+  <!-- Filtros de Grupo Muscular -->
+  <div class="filtros-grupos">
+    @for (grupo of gruposMusculares; track $index) {
+      <button 
+        class="btn-filtro-grupo btn-touch-accessible" 
+        [class.activo]="grupoSeleccionado() === grupo"
+        (click)="seleccionarGrupo(grupo)">
+        {{ traducirGrupo(grupo) }}
+      </button>
+    }
+  </div>
+
+  <!-- Barra de Búsqueda Inteligente -->
+  <div class="buscador-ejercicios-panel animate-fade-in">
+    <div class="buscador-input-wrapper" [class.tiene-busqueda]="!!buscarTermino()">
+      <span class="icono-lupa">🔍</span>
+      <input 
+        type="text" 
+        [value]="buscarTermino()" 
+        (input)="buscarTermino.set($any($event.target).value)" 
+        [placeholder]="acc.t('ejercicios.buscarPlaceholder')"
+        class="input-busqueda-inteligente"
+        [class.activo]="!!buscarTermino()"
+        id="input-buscador-ejercicios">
+      @if (buscarTermino()) {
+        <button class="btn-limpiar-busqueda" (click)="buscarTermino.set('')" title="Limpiar búsqueda">✕</button>
+      }
+    </div>
+
+    @if (buscarTermino()) {
+      <div class="buscador-filtros-chips">
+        <span class="chip-label">{{ acc.t('ejercicios.filtrarTipo') }}</span>
+        <button 
+          class="chip-filtro" 
+          [class.activo]="tipoFiltroBusqueda() === 'TODOS'"
+          (click)="tipoFiltroBusqueda.set('TODOS')">
+          {{ acc.t('ejercicios.todos') }} ({{ ejerciciosFiltrados().length }})
+        </button>
+        <button 
+          class="chip-filtro compuesto" 
+          [class.activo]="tipoFiltroBusqueda() === 'COMPUESTO'"
+          (click)="tipoFiltroBusqueda.set('COMPUESTO')">
+          {{ acc.t('ejercicios.compuestoBtn') }}
+        </button>
+        <button 
+          class="chip-filtro aislamiento" 
+          [class.activo]="tipoFiltroBusqueda() === 'AISLAMIENTO'"
+          (click)="tipoFiltroBusqueda.set('AISLAMIENTO')">
+          {{ acc.t('ejercicios.aislamientoBtn') }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Nivel 2: Tarjetas de Subcategoría (Cajas) -->
+  @if (!mostrarResultadosBusqueda() && nivelExploracion() === 'SUBCATEGORIA') {
+    <div class="subcategorias-cajas-grid animate-fade-in">
+      @for (subcat of subcategoriasTarjetas(); track subcat) {
+        <div class="subcategoria-caja-card btn-touch-accessible" (click)="seleccionarSubcategoria(subcat)">
+          <!-- IZQUIERDA: IMAGEN DEL EJERCICIO / MÚSCULO -->
+          <div class="caja-imagen-musculo">
+            @if (obtenerSubcategoriaImagen(subcat); as imgUrl) {
+              <img [src]="imgUrl" [alt]="subcat" class="img-musculo-referencial">
+            } @else {
+              <span class="icono-musculo-fallback">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M2 8h4M2 16h4M18 8h4M18 16h4M6 12h12"/></svg>
+              </span>
+            }
+          </div>
+          <!-- DERECHA: NOMBRE DE EJERCICIO Y CONTEO -->
+          <div class="caja-info">
+            <h3>{{ subcat }}</h3>
+            <p class="conteo-ejercicios">{{ obtenerConteoEjercicios(subcat) }} {{ acc.t('ejercicios.disponibles') }}</p>
+            <span class="caja-flecha">&rarr;</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Nivel 3: Listado de Ejercicios Filtrados (Divididos por Tipo o Búsqueda) -->
+  @if (mostrarResultadosBusqueda() || nivelExploracion() === 'EJERCICIOS') {
+    
+    @if (nivelExploracion() === 'EJERCICIOS' && !mostrarResultadosBusqueda()) {
+      <div class="barra-navegacion-ejercicios animate-fade-in">
+        <button class="btn-volver-nivel btn-touch-accessible" (click)="volverASubcategorias()">
+          &larr; {{ acc.t('ejercicios.volver') }} {{ traducirGrupo(grupoSeleccionado()) }}
+        </button>
+        <h2 class="subcategoria-titulo-header">
+          {{ acc.t('ejercicios.region') }}: <span>{{ subcategoriaSeleccionada() }}</span>
+        </h2>
+      </div>
+    }
+
+    @if (ejerciciosFiltrados().length === 0) {
+      <div class="no-resultados">
+        <span class="icono-vacio">🔍</span>
+        <h3>{{ acc.t('ejercicios.sinResultados') }}</h3>
+        <p>No se encontraron ejercicios con "{{ buscarTermino() }}". Prueba buscando con otro término o seleccionando otra categoría.</p>
+      </div>
+    } @else {
+      <!-- Si es TODOS o una búsqueda, mostrar grid normal. Si es una subcategoría específica, mostrar divididos en dos columnas. -->
+      @if (grupoSeleccionado() === 'TODOS' || mostrarResultadosBusqueda()) {
+        <div class="ejercicios-grid animate-fade-in">
+          @for (ejercicio of ejerciciosFiltrados(); track ejercicio.id) {
+            <div class="ejercicio-card" (click)="abrirDetalle(ejercicio)">
+              <div class="card-imagen-placeholder">
+                @if (obtenerPortadaEjercicio(ejercicio); as portadaUrl) {
+                  <img [src]="portadaUrl" [alt]="ejercicio.nombre">
+                } @else {
+                  <span class="card-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M2 8h4M2 16h4M18 8h4M18 16h4M6 12h12"/></svg>
+                  </span>
+                }
+                <div class="badges-container">
+                  <span class="badge-grupo">{{ ejercicio.grupoMuscular }}</span>
+                  @if (ejercicio.subcategoria) {
+                    <span class="badge-subcategoria">{{ ejercicio.subcategoria }}</span>
+                  }
+                  @if (ejercicio.tipo) {
+                    <span class="badge-tipo" [class.compuesto]="ejercicio.tipo === 'COMPUESTO'">
+                      {{ ejercicio.tipo }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <div class="card-info">
+                <h3>{{ ejercicio.nombre }}</h3>
+                <p>{{ ejercicio.descripcion || 'Sin descripción disponible.' | slice:0:80 }}...</p>
+                <div class="card-acciones-flex">
+                  <span class="btn-ver-mas">Ver detalles &rarr;</span>
+                  <button type="button" class="btn-card-agregar-quick" (click)="abrirSelectorRutina(ejercicio, $event)">
+                    + Añadir
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Columnas lado a lado de Compuestos vs Aislamiento -->
+        <div class="ejercicios-columnas-layout animate-fade-in">
+          
+          <!-- Columna Compuestos -->
+          <div class="columna-ejercicios compuestos">
+            <div class="columna-header compuesto-header">
+              <h3>
+                <span class="header-title-text">
+                  Compuestos
+                  <span class="info-tooltip-wrapper">
+                    <span class="info-icon">ⓘ</span>
+                    <span class="tooltip-box">Es recomendable empezar con estos ejercicios. Trabajan varios músculos a la vez y te permiten levantar más peso cuando tienes más energía.</span>
+                  </span>
+                  
+                  @if (grupoSeleccionado().toUpperCase() === 'ESPALDA' && subcategoriaSeleccionada() !== 'TODOS') {
+                    <span class="badge-espalda-tipo">
+                      {{ subcategoriaSeleccionada() }}
+                      <span class="info-tooltip-wrapper inline-tooltip">
+                        <span class="info-icon">ⓘ</span>
+                        <span class="tooltip-box">{{ subcategoriaDescripciones[subcategoriaSeleccionada().toUpperCase()] }}</span>
+                      </span>
+                    </span>
+                  }
+                </span>
+                <span class="badge-count">{{ compuestosFiltrados().length }}</span>
+              </h3>
+              <p class="subtitle">Ejercicios multiarticulares para fuerza y masa general.</p>
+            </div>
+            
+            @if (compuestosFiltrados().length === 0) {
+              <div class="columna-vacia">
+                <p>No se encontraron ejercicios compuestos para esta región.</p>
+              </div>
+            } @else {
+              <div class="columna-grid">
+                @for (ejercicio of compuestosFiltrados(); track ejercicio.id) {
+                  <div class="ejercicio-card card-mini" (click)="abrirDetalle(ejercicio)">
+                    <div class="card-info">
+                      <h4>{{ ejercicio.nombre }}</h4>
+                      <p>{{ ejercicio.descripcion || 'Sin descripción disponible.' | slice:0:110 }}...</p>
+                      <div class="card-acciones-flex">
+                        <span class="btn-ver-mas">Detalles &rarr;</span>
+                        <button type="button" class="btn-card-agregar-quick" (click)="abrirSelectorRutina(ejercicio, $event)">
+                          + Añadir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Columna Aislamientos -->
+          <div class="columna-ejercicios aislamientos">
+            <div class="columna-header aislamiento-header">
+              <h3>
+                <span class="header-title-text">
+                  Aislamiento
+                  <span class="info-tooltip-wrapper">
+                    <span class="info-icon">ⓘ</span>
+                    <span class="tooltip-box">Es recomendable hacer ejercicios de aislamiento al final de tu rutina, luego de haber fatigado el músculo con los ejercicios compuestos, para enfocar el esfuerzo en una sola zona y lograr un bombeo máximo.</span>
+                  </span>
+                </span>
+                <span class="badge-count">{{ aislamientosFiltrados().length }}</span>
+              </h3>
+              <p class="subtitle">Movimientos monoarticulares para enfocar y bombear el músculo objetivo.</p>
+            </div>
+
+            @if (aislamientosFiltrados().length === 0) {
+              <div class="columna-vacia">
+                <p>No se encontraron ejercicios de aislamiento para esta región.</p>
+              </div>
+            } @else {
+              <div class="columna-grid">
+                @for (ejercicio of aislamientosFiltrados(); track ejercicio.id) {
+                  <div class="ejercicio-card card-mini" (click)="abrirDetalle(ejercicio)">
+                    <div class="card-info">
+                      <h4>{{ ejercicio.nombre }}</h4>
+                      <p>{{ ejercicio.descripcion || 'Sin descripción disponible.' | slice:0:110 }}...</p>
+                      <div class="card-acciones-flex">
+                        <span class="btn-ver-mas">Detalles &rarr;</span>
+                        <button type="button" class="btn-card-agregar-quick" (click)="abrirSelectorRutina(ejercicio, $event)">
+                          + Añadir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+    }
+
+  }
+
+  <!-- Modal de Detalle de Ejercicio -->
+  @if (ejercicioSeleccionado(); as ejercicio) {
+    <div class="modal-overlay" (click)="cerrarDetalle()">
+      <div class="modal-content modal-detalle-ejercicio" (click)="$event.stopPropagation()">
+        <button class="btn-cerrar-modal" (click)="cerrarDetalle()">&times;</button>
+        
+        <div class="modal-ejercicio-header">
+          <div class="modal-header-info">
+            <div class="header-title-flex">
+              <h2>{{ ejercicio.nombre }}</h2>
+              @if (auth.esAdmin()) {
+                <button type="button" class="btn-admin-gestor-media-btn" (click)="abrirAdminMediaModal(ejercicio, $event)">
+                  Gestor Multimedia (ADMIN)
+                </button>
+              }
+            </div>
+            <div class="tags-row">
+              <span class="badge-grupo">{{ ejercicio.grupoMuscular }}</span>
+              @if (ejercicio.subcategoria) {
+                <span class="badge-subcategoria">{{ ejercicio.subcategoria }}</span>
+              }
+              @if (ejercicio.tipo) {
+                <span class="badge-tipo" [class.compuesto]="ejercicio.tipo === 'COMPUESTO'">{{ ejercicio.tipo }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-ejercicio-body">
+          
+          <!-- VISOR DE IMAGEN AMPLIADA SI SE HIZO CLIC EN UNA FOTO/VIDEO -->
+          @if (imagenAmpliada()) {
+            <div class="contenedor-imagen-ampliada animate-fade-in">
+              <div class="header-ampliada">
+                <span class="titulo-foto-ampliada">
+                  @if (activeMediaIndex() === 7) { Video Guía Demostrativo } @else { Foto {{ activeMediaIndex() }} - Ángulo de Detalle }
+                </span>
+                <button type="button" class="btn-cerrar-ampliada" (click)="cerrarImagenAmpliada()">
+                  Volver a Vista Normal
+                </button>
+              </div>
+
+              <div class="frame-foto-ampliada">
+                @if (activeMediaIndex() === 7 && ejercicio.videoUrl) {
+                  <video [src]="ejercicio.videoUrl" controls autoplay loop class="media-ampliada-elemento"></video>
+                } @else if (obtenerUrlFotoActiva(ejercicio, activeMediaIndex()); as fotoUrl) {
+                  <img [src]="fotoUrl" [alt]="ejercicio.nombre" class="media-ampliada-elemento">
+                } @else {
+                  <div class="empty-ampliada-placeholder">
+                    <span>Foto {{ activeMediaIndex() }} (Sin imagen cargada)</span>
+                  </div>
+                }
+              </div>
+
+              <!-- CUADRO DE DESCRIPCIÓN ADICIONAL -->
+              <div class="cuadro-breve-descripcion">
+                <span class="badge-info-icon">Descripción Técnica Adicional:</span>
+                <p class="txt-breve-desc">{{ obtenerDescripcionBreveMedia(activeMediaIndex()) }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="details-split-grid">
+              <!-- Columna Izquierda: Biomecánica y Cues Técnicos -->
+              <div class="details-biomecanica">
+                <h3>Instrucciones Técnicas y Biomecánica</h3>
+                <p class="txt-indicaciones">{{ obtenerIndicacionesCientificas(ejercicio.grupoMuscular, ejercicio.nombre) }}</p>
+              </div>
+
+              <!-- Columna Derecha: Guía Multimedia interactiva con límites por plan -->
+              <div class="details-multimedia">
+                <h3>Guía Multimedia Paso a Paso</h3>
+                
+                <!-- Tarjeta Destacada Foto 1 (Portada Principal) -->
+                <div class="foto1-card-principal" [class.activa]="activeMediaIndex() === 1" (click)="seleccionarYAmpliarMedia(1)">
+                  <div class="card-header-badge">
+                    <span>Foto 1 - Vista Principal</span>
+                    <span class="badge-gratis-pill">Clic para ampliar</span>
+                  </div>
+                  @if (obtenerUrlFotoActiva(ejercicio, 1); as foto1) {
+                    <img [src]="foto1" alt="Foto 1 Vista Principal" class="foto1-img-preview">
+                  } @else {
+                    <div class="empty-foto1-placeholder">
+                      <span>Foto 1 (Vista Principal)</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Botón Desplegable para Mostrar más fotos -->
+                <button type="button" class="btn-desplegar-multimedia" (click)="toggleDesplegarMultimedia()">
+                  @if (desplegarMultimedia()) {
+                    <span>▲ Ocultar ángulos adicionales</span>
+                  } @else {
+                    <span>Ver más ángulos (Fotos 2 a 6 y Video)</span>
+                  }
+                </button>
+
+                <!-- Fotos 2 a 6 y Video Desplegables -->
+                @if (desplegarMultimedia()) {
+                  <div class="mini-media-grid desplegado-grid animate-fade-in">
+                    <div class="mini-media-item" [class.activa]="activeMediaIndex() === 2" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 2)" (click)="seleccionarYAmpliarMedia(2)">
+                      <span>Foto 2</span>
+                    </div>
+                    <div class="mini-media-item" [class.activa]="activeMediaIndex() === 3" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 3)" (click)="seleccionarYAmpliarMedia(3)">
+                      <span>Foto 3</span>
+                    </div>
+                    
+                    @if (auth.plan() === 'PRO' || auth.esAdmin()) {
+                      <div class="mini-media-item animate-fade-in" [class.activa]="activeMediaIndex() === 4" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 4)" (click)="seleccionarYAmpliarMedia(4)"><span>Foto 4</span></div>
+                      <div class="mini-media-item animate-fade-in" [class.activa]="activeMediaIndex() === 5" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 5)" (click)="seleccionarYAmpliarMedia(5)"><span>Foto 5</span></div>
+                      <div class="mini-media-item animate-fade-in" [class.activa]="activeMediaIndex() === 6" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 6)" (click)="seleccionarYAmpliarMedia(6)"><span>Foto 6</span></div>
+                      <div class="mini-media-item video-col animate-fade-in" [class.activa]="activeMediaIndex() === 7" [class.tiene-foto]="!!ejercicio.videoUrl" (click)="seleccionarYAmpliarMedia(7)"><span>Video</span></div>
+                    } @else {
+                      <div class="mini-media-item locked" title="Solo disponible en Premium"><span>Foto 4</span></div>
+                      <div class="mini-media-item locked" title="Solo disponible en Premium"><span>Foto 5</span></div>
+                      <div class="mini-media-item locked" title="Solo disponible en Premium"><span>Foto 6</span></div>
+                      <div class="mini-media-item video-col locked" title="Solo disponible en Premium"><span>Video</span></div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Ejemplo Práctico de Ayuda -->
+          <div class="details-ejemplo">
+            <strong>Ejemplo de ejecución y progresión:</strong>
+            <p class="txt-ejemplo">{{ obtenerEjemploAyuda(ejercicio.grupoMuscular, ejercicio.nombre) }}</p>
+          </div>
+
+          <!-- Listado de Variantes con Dashboard de Efectividad -->
+          @if (ejercicio.variantes && ejercicio.variantes.length > 0) {
+            <div class="variantes-seccion">
+              <h3>Variantes Recomendadas</h3>
+              <div class="variantes-lista">
+                @for (variante of ejercicio.variantes; track variante.id) {
+                  <div class="variante-card-item">
+                    <div class="var-main-info">
+                      <h4>{{ variante.nombre }}</h4>
+                      <p>{{ variante.descripcion }}</p>
+                      @if (variante.videoUrl) {
+                        <a [href]="variante.videoUrl" target="_blank" class="link-video-mini">Ver Video</a>
+                      }
+                    </div>
+                    
+                    <!-- Dashboard de Efectividad -->
+                    @if (variante.efectividadPorcentaje) {
+                      <div class="efectividad-mini-dashboard">
+                        <div class="val-label">Efectividad Reclutamiento</div>
+                        <div class="barra-progreso-bg">
+                          <div class="barra-progreso-fill" [style.width.%]="variante.efectividadPorcentaje" [ngClass]="{
+                            'alto': variante.efectividadPorcentaje >= 90,
+                            'medio': variante.efectividadPorcentaje >= 80 && variante.efectividadPorcentaje < 90,
+                            'bajo': variante.efectividadPorcentaje < 80
+                          }"></div>
+                        </div>
+                        <span class="porcentaje-txt">{{ variante.efectividadPorcentaje }}%</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Botón de Acción Principal al final del Modal -->
+          <div class="modal-acciones-footer">
+            <button class="btn-agregar-rutina-catalogo-footer" (click)="abrirSelectorRutina(ejercicio)">
+              + Agregar a mi Rutina
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Configuración y Adición a Rutina Directa -->
+  @if (mostrarSelectorRutina() && ejercicioParaAgregar(); as ejercicio) {
+    <div class="modal-overlay selector-rutina-overlay" (click)="cerrarSelectorRutina()">
+      <div class="modal-content selector-rutina-content animate-fade-in" (click)="$event.stopPropagation()">
+        <button class="btn-cerrar-modal" (click)="cerrarSelectorRutina()">&times;</button>
+        
+        <div class="paso-modal-bloque">
+          <!-- Cabecera del Ejercicio -->
+          <div class="ejercicio-config-resumen">
+            <h2 class="ejercicio-nombre-config">{{ ejercicio.nombre }}</h2>
+            <div class="badges-row-config">
+              <span class="badge-grupo">{{ traducirGrupo(ejercicio.grupoMuscular) }}</span>
+              @if (ejercicio.subcategoria) {
+                <span class="badge-subcat">{{ ejercicio.subcategoria }}</span>
+              }
+              @if (ejercicio.tipo) {
+                <span class="badge-tipo" [class.compuesto]="ejercicio.tipo === 'COMPUESTO'">
+                  {{ ejercicio.tipo }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Selector de Rutina de Destino (si tiene más de 1) -->
+          @if (rutinas().length > 1) {
+            <div class="selector-rutina-destino-row">
+              <label class="lbl-rutina-destino">Rutina de destino:</label>
+              <div class="rutinas-pills-selector">
+                @for (r of rutinas(); track r.id) {
+                  <button type="button" 
+                          class="btn-pill-dest btn-touch-accessible" 
+                          [class.activa]="rutinaDestinoSeleccionadaId() === r.id"
+                          (click)="rutinaDestinoSeleccionadaId.set(r.id!)">
+                    {{ r.nombre }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Selector Rápido de Día de la Semana en 1 sola Fila -->
+          <div class="selector-dia-chips-section">
+            <div class="section-label-row">
+              <span class="lbl-txt">📅 Asignar al día:</span>
+              <span class="dia-actual-highlight">{{ diaSeleccionadoParaRutina() }}</span>
+            </div>
+            <div class="dias-mini-chips-grid">
+              @for (dia of diasSemanaList; track dia) {
+                <button type="button" 
+                        class="btn-dia-chip btn-touch-accessible" 
+                        [class.activo]="diaSeleccionadoParaRutina() === dia" 
+                        (click)="diaSeleccionadoParaRutina.set(dia)">
+                  {{ dia | slice:0:3 }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- FORMULARIO DE PARÁMETROS -->
+          <div class="parametros-config-grid">
+            
+            <!-- Series -->
+            <div class="parametro-card">
+              <label class="parametro-label">
+                <span class="lbl-title">Series</span>
+                <span class="param-hint">Efectivas</span>
+              </label>
+              <div class="stepper-control">
+                <button type="button" class="btn-stepper minus btn-touch-accessible" (click)="ajustarSeries(-1)">-</button>
+                <input type="number" min="1" max="20" [value]="seriesRutinaInput()" (focus)="$any($event.target).select()" (input)="seriesRutinaInput.set($any($event.target).valueAsNumber || 1)" class="stepper-input">
+                <button type="button" class="btn-stepper plus btn-touch-accessible" (click)="ajustarSeries(1)">+</button>
+              </div>
+            </div>
+
+            <!-- Repeticiones -->
+            <div class="parametro-card">
+              <label class="parametro-label">
+                <span class="lbl-title">Repeticiones</span>
+                <span class="param-hint">Por serie</span>
+              </label>
+              <div class="stepper-control">
+                <button type="button" class="btn-stepper minus btn-touch-accessible" (click)="ajustarReps(-1)">-</button>
+                <input type="number" min="1" max="100" [value]="repsRutinaInput()" (focus)="$any($event.target).select()" (input)="repsRutinaInput.set($any($event.target).valueAsNumber || 1)" class="stepper-input">
+                <button type="button" class="btn-stepper plus btn-touch-accessible" (click)="ajustarReps(1)">+</button>
+              </div>
+            </div>
+
+            <!-- Peso Kg -->
+            <div class="parametro-card">
+              <label class="parametro-label">
+                <span class="lbl-title">Peso ({{ acc.unidadPeso() }})</span>
+                <span class="param-hint">Carga extra</span>
+              </label>
+              <div class="stepper-control weight-stepper">
+                <button type="button" class="btn-stepper minus btn-step-kg btn-touch-accessible" (click)="ajustarPeso(-2.5)">-2.5</button>
+                <input type="number" min="0" max="500" step="0.5" [value]="pesoRutinaInput()" (focus)="$any($event.target).select()" (input)="pesoRutinaInput.set($any($event.target).valueAsNumber || 0)" class="stepper-input">
+                <button type="button" class="btn-stepper plus btn-step-kg btn-touch-accessible" (click)="ajustarPeso(2.5)">+2.5</button>
+              </div>
+            </div>
+
+            <!-- Descanso Segundos -->
+            <div class="parametro-card descanso-card">
+              <label class="parametro-label">
+                <span class="lbl-title">⏱️ Descanso</span>
+                <span class="param-hint">{{ descansoRutinaInput() >= 60 ? (descansoRutinaInput() / 60) + ' min' : descansoRutinaInput() + ' seg' }}</span>
+              </label>
+              
+              <div class="descanso-pills-row">
+                <button type="button" class="btn-descanso-pill btn-touch-accessible" [class.activo]="descansoRutinaInput() === 45" (click)="ajustarDescanso(45)">45s</button>
+                <button type="button" class="btn-descanso-pill btn-touch-accessible" [class.activo]="descansoRutinaInput() === 60" (click)="ajustarDescanso(60)">1 min</button>
+                <button type="button" class="btn-descanso-pill btn-touch-accessible" [class.activo]="descansoRutinaInput() === 90" (click)="ajustarDescanso(90)">1:30 min</button>
+                <button type="button" class="btn-descanso-pill btn-touch-accessible" [class.activo]="descansoRutinaInput() === 120" (click)="ajustarDescanso(120)">2 min</button>
+                <button type="button" class="btn-descanso-pill btn-touch-accessible" [class.activo]="descansoRutinaInput() === 180" (click)="ajustarDescanso(180)">3 min</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Botón Final de Guardar -->
+          <div class="acciones-paso2-footer">
+            <button 
+              type="button" 
+              class="btn-confirmar-agregar-rutina btn-touch-accessible" 
+              [disabled]="guardandoRutina()"
+              (click)="confirmarAgregarEjercicioARutina()">
+              @if (guardandoRutina()) {
+                <span>Guardando en rutina...</span>
+              } @else {
+                <span>✓ Agregar a mi Rutina</span>
+              }
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Modal Admin Gestor Multimedia -->
+  @if (mostrarModalAdminMedia() && ejercicioAdminMedia(); as ejAdmin) {
+    <div class="modal-overlay admin-media-overlay" (click)="cerrarAdminMediaModal()">
+      <div class="modal-content admin-media-content" (click)="$event.stopPropagation()">
+        <button class="btn-cerrar-modal" (click)="cerrarAdminMediaModal()">&times;</button>
+        
+        <div class="admin-modal-header">
+          <span class="admin-badge">ADMINISTRADOR</span>
+          <h2>Gestor de Guía Multimedia de Ejercicio</h2>
+          <p class="sub-txt">Carga las fotos paso a paso de tu equipo local o pega sus URLs para <strong>"{{ ejAdmin.nombre }}"</strong>.</p>
+        </div>
+
+        <div class="admin-media-grid">
+          
+          <!-- Slot Foto 1 -->
+          <div class="media-slot-card">
+            <div class="slot-header">
+              <span class="slot-title">Foto 1 (Vista Inicial / Portada)</span>
+              <span class="plan-tag gratis">GRATIS</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminFoto1()) {
+                <img [src]="adminFoto1()" alt="Foto 1">
+              } @else {
+                <div class="empty-preview">Sin foto</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto1')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminFoto1()" (input)="adminFoto1.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+            </div>
+          </div>
+
+          <!-- Slot Foto 2 -->
+          <div class="media-slot-card">
+            <div class="slot-header">
+              <span class="slot-title">Foto 2 (Plano Escapular / Ángulos)</span>
+              <span class="plan-tag gratis">GRATIS</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminFoto2()) {
+                <img [src]="adminFoto2()" alt="Foto 2">
+              } @else {
+                <div class="empty-preview">Sin foto</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto2')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminFoto2()" (input)="adminFoto2.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+            </div>
+          </div>
+
+          <!-- Slot Foto 3 -->
+          <div class="media-slot-card">
+            <div class="slot-header">
+              <span class="slot-title">Foto 3 (Depresión / Hombros abajo)</span>
+              <span class="plan-tag gratis">GRATIS</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminFoto3()) {
+                <img [src]="adminFoto3()" alt="Foto 3">
+              } @else {
+                <div class="empty-preview">Sin foto</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto3')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminFoto3()" (input)="adminFoto3.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+            </div>
+          </div>
+
+          <!-- Slot Foto 4 -->
+          <div class="media-slot-card pro">
+            <div class="slot-header">
+              <span class="slot-title">Foto 4 (Vista POV / 1ra Persona)</span>
+              <span class="plan-tag pro">PRO / PREMIUM</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminFoto4()) {
+                <img [src]="adminFoto4()" alt="Foto 4">
+              } @else {
+                <div class="empty-preview">Sin foto</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto4')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminFoto4()" (input)="adminFoto4.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+            </div>
+          </div>
+
+          <!-- Slot Foto 5 -->
+          <div class="media-slot-card pro">
+            <div class="slot-header">
+              <span class="slot-title">Foto 5 (Vista Cenital / Posterior)</span>
+              <span class="plan-tag pro">PRO / PREMIUM</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminFoto5()) {
+                <img [src]="adminFoto5()" alt="Foto 5">
+              } @else {
+                <div class="empty-preview">Sin foto</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto5')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminFoto5()" (input)="adminFoto5.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+            </div>
+          </div>
+
+          <!-- Slot Foto 6 -->
+          <div class="media-slot-card pro">
+            <div class="slot-header">
+              <span class="slot-title">Foto 6 (Variante / Detalle)</span>
+              <span class="plan-tag pro">PRO / PREMIUM</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminFoto6()) {
+                <img [src]="adminFoto6()" alt="Foto 6">
+              } @else {
+                <div class="empty-preview">Sin foto</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto6')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminFoto6()" (input)="adminFoto6.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+            </div>
+          </div>
+
+          <!-- Slot Video -->
+          <div class="media-slot-card pro video-slot">
+            <div class="slot-header">
+              <span class="slot-title">Video Guía Demostrativo</span>
+              <span class="plan-tag pro">PRO / PREMIUM</span>
+            </div>
+            <div class="slot-preview">
+              @if (adminVideo()) {
+                <video [src]="adminVideo()" controls class="video-preview-mini"></video>
+              } @else {
+                <div class="empty-preview">Sin video</div>
+              }
+            </div>
+            <div class="slot-actions">
+              <label class="btn-subir-archivo">
+                Seleccionar archivo video/MP4
+                <input type="file" accept="video/*" (change)="onArchivoSeleccionado($event, 'video')" style="display: none;">
+              </label>
+              <input type="text" [value]="adminVideo()" (input)="adminVideo.set($any($event.target).value)" placeholder="o URL de video..." class="input-url-slot">
+            </div>
+          </div>
+
+        </div>
+
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-cancelar" (click)="cerrarAdminMediaModal()">Cancelar</button>
+          <button type="button" class="btn-guardar-admin-media" [disabled]="guardandoAdminMedia()" (click)="guardarAdminMedia()">
+            @if (guardandoAdminMedia()) {
+              <span>Guardando...</span>
+            } @else {
+              <span>Guardar Cambios Multimedia (ADMIN)</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+</div>

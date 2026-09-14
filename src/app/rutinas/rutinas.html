@@ -1,0 +1,1075 @@
+<div class="rutinas-container">
+
+  <!-- ==================== PLANIFICADOR SEMANAL Y RUTINAS ==================== -->
+  <div class="planner-dashboard animate-fade-in">
+    
+    <!-- BARRA SUPERIOR: + NUEVA RUTINA Y BOTÓN DESPLEGABLE DE RUTINAS CREADAS -->
+    <div class="barra-rutinas-top">
+      <button type="button" class="btn-back-perfil btn-touch-accessible" routerLink="/perfil" style="background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        ⬅ Volver
+      </button>
+      <button type="button" class="btn-crear-nueva-rutina btn-touch-accessible" (click)="abrirModal()">
+        + Nueva Rutina
+      </button>
+
+      @if (rutinas().length > 0) {
+        <div class="rutina-dropdown-wrapper">
+          <button type="button" 
+                  class="btn-rutina-dropdown-trigger btn-touch-accessible" 
+                  [class.abierto]="menuDesplegableAbierto()"
+                  (click)="toggleMenuDesplegable()">
+            <span class="dropdown-trigger-nombre">{{ rutinaActual()?.nombre || 'Mi Rutina Semanal' }}</span>
+            <span class="dropdown-trigger-arrow">{{ menuDesplegableAbierto() ? '▲' : '▼' }}</span>
+          </button>
+
+          @if (menuDesplegableAbierto()) {
+            <div class="dropdown-backdrop" (click)="cerrarMenuDesplegable()"></div>
+            
+            <div class="rutina-dropdown-menu animate-fade-in">
+              <div class="dropdown-menu-header">
+                <span>Mis Rutinas Creadas ({{ rutinas().length }})</span>
+              </div>
+              
+              <div class="dropdown-menu-list">
+                @for (r of rutinas(); track r.id; let idx = $index) {
+                  <div class="dropdown-item-row" [class.activa]="rutinaActual()?.id === r.id">
+                    <button type="button" 
+                            class="dropdown-item-btn btn-touch-accessible"
+                            (click)="seleccionarRutina(r.id!)">
+                      <span class="item-indicador">{{ rutinaActual()?.id === r.id ? '✓' : (idx + 1) }}</span>
+                      <div class="item-detalles">
+                        <span class="item-nombre">{{ r.nombre || ('Rutina ' + (idx + 1)) }}</span>
+                        <span class="item-subinfo">
+                          {{ (r.ejercicios?.length || 0) }} ej. • {{ (r.diasSemana?.split(',')?.length || 7) }} días
+                        </span>
+                      </div>
+                    </button>
+                    <button type="button" 
+                            class="btn-item-del btn-touch-accessible" 
+                            (click)="$event.stopPropagation(); eliminarRutina(r.id!)" 
+                            title="Eliminar rutina">
+                      &times;
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- DETALLE DE LA RUTINA SELECCIONADA: PESTAÑAS DE DÍAS Y CAJA RESPONSIVA -->
+    @if (rutinaActual(); as rutina) {
+      <div class="rutina-detalle-panel animate-fade-in">
+        
+        <!-- PESTAÑAS DE DÍAS DE LA SEMANA (LUNES A DOMINGO) -->
+        <div class="dias-tabs-bar-wrap">
+          <div class="dias-tabs-bar">
+            @for (diaObj of semanaDeRutina(); track diaObj.dia) {
+              <button type="button" 
+                      class="btn-dia-tab btn-touch-accessible" 
+                      [class.activo]="diaSeleccionadoTab() === diaObj.dia"
+                      [class.inactivo]="!diaObj.esActivo"
+                      [class.tiene-ejercicios]="diaObj.esActivo && diaObj.ejercicios.length > 0"
+                      (click)="seleccionarDiaTab(diaObj.dia)"
+                      [title]="diaObj.esActivo ? (diaObj.ejercicios.length > 0 ? diaObj.dia + ' (' + diaObj.ejercicios.length + ' ejercicios)' : diaObj.dia + ' (Activo)') : diaObj.dia + ' (Día de descanso - Bloqueado)'">
+                <span class="dia-tab-nom">{{ diaObj.dia }}</span>
+                @if (diaObj.esActivo && diaObj.ejercicios.length > 0) {
+                  <span class="dia-dot-activo" title="Tiene ejercicios"></span>
+                } @else if (!diaObj.esActivo) {
+                  <span class="dia-lock-descanso" title="Día de descanso / Bloqueado">🔒</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- CAJA PRINCIPAL DEL DÍA SELECCIONADO (RESPONSIVO Y CELULAR) -->
+        @if (datosDiaSeleccionado(); as diaFocus) {
+          <div class="dia-box-container animate-fade-in" [class.dia-bloqueado-container]="!diaFocus.esActivo">
+            
+            <!-- Encabezado del Día -->
+            <div class="dia-box-header">
+              <div class="dbh-info">
+                <div class="dbh-top-tags">
+                  <span class="tag-dia-label">Día Seleccionado</span>
+                  @if (diaFocus.esActivo) {
+                    @if (diaFocus.ejercicios.length > 0) {
+                      <span class="badge-dia-estado activo">💪 ENTRENAMIENTO ({{ diaFocus.ejercicios.length }} Ejercicios)</span>
+                    } @else {
+                      <span class="badge-dia-estado activo-vacio">⚡ ENTRENAMIENTO HABILITADO (0 Ejercicios)</span>
+                    }
+                  } @else {
+                    <span class="badge-dia-estado descanso">🔒 DÍA DE DESCANSO / SUSPENDIDO</span>
+                  }
+                </div>
+                <h2 class="dbh-nombre-dia">{{ diaFocus.dia }}</h2>
+              </div>
+            </div>
+
+            <!-- CONTENIDO DEL DÍA: SI ES ACTIVO Y TIENE EJERCICIOS -->
+            @if (diaFocus.esActivo && diaFocus.ejercicios.length > 0) {
+              <div class="dia-ejercicios-grid">
+                @for (re of diaFocus.ejercicios; track (re.ejercicio.id + '_' + $index); let idx = $index; let total = $count) {
+                  <div class="dia-ejercicio-card animate-fade-in" 
+                       (click)="abrirDetalleYEdicionEjercicio(rutina.id!, re, diaFocus.dia)"
+                       title="Toca para editar peso, series, repeticiones, descansos o ver instrucciones">
+                    
+                    <div class="dec-header">
+                      <div class="dec-left">
+                        <span class="dec-numero">#{{ idx + 1 }}</span>
+                        <div class="dec-tags">
+                          <span class="tag-musculo">{{ re.ejercicio.grupoMuscular }}</span>
+                          @if (re.ejercicio.subcategoria) {
+                            <span class="tag-subcat">{{ re.ejercicio.subcategoria }}</span>
+                          }
+                          @if (re.ejercicio.tipo) {
+                            <span class="tag-tipo">{{ re.ejercicio.tipo }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="dec-acciones" (click)="$event.stopPropagation()">
+                        <span class="dec-icon-lock" title="Fijar">🔓</span>
+                        @if (idx > 0) {
+                          <button type="button" class="btn-dec-icon" (click)="subirEjercicio(rutina.id!, idx, diaFocus.dia)" title="Mover arriba">▲</button>
+                        }
+                        @if (idx < total - 1) {
+                          <button type="button" class="btn-dec-icon" (click)="bajarEjercicio(rutina.id!, idx, diaFocus.dia)" title="Mover abajo">▼</button>
+                        }
+                        <button type="button" class="btn-dec-icon btn-dec-del" (click)="quitarEjercicioDeDia(rutina.id!, re.ejercicio.id!, diaFocus.dia)" title="Quitar ejercicio">&times;</button>
+                      </div>
+                    </div>
+
+                    <h4 class="dec-nombre">
+                      {{ re.ejercicio.nombre }}
+                    </h4>
+
+                    <div class="dec-stats-bar">
+                      <div class="dec-stat-box">
+                        <span class="lbl">Series</span>
+                        <span class="val">{{ re.series }}</span>
+                      </div>
+                      <span class="dec-stat-x">&times;</span>
+                      <div class="dec-stat-box">
+                        <span class="lbl">Reps</span>
+                        <span class="val">{{ re.repeticiones }}{{ re.repeticionesMax && re.repeticionesMax > re.repeticiones ? ' - ' + re.repeticionesMax : '' }}</span>
+                      </div>
+                      <div class="dec-stat-box peso">
+                        <span class="lbl">Peso</span>
+                        <span class="val">
+                          @if (!re.pesoKg || re.pesoKg === 0) {
+                            Peso Corporal
+                          } @else {
+                            {{ re.pesoKg }} {{ acc.unidadPeso() }}
+                          }
+                        </span>
+                      </div>
+                      @if (re.descansoSeriesSegundos) {
+                        <div class="dec-stat-box descanso-tag">
+                          <span class="lbl">Descanso</span>
+                          <span class="val">{{ formatearTiempoDescanso(re.descansoSeriesSegundos) }}</span>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="dec-hint-editar">
+                      <span>⚙️ Toca para editar series, reps, peso o ver instrucciones</span>
+                    </div>
+
+                  </div>
+                }
+              </div>
+
+              <!-- Único botón + Añadir Ejercicio directamente debajo de la lista de ejercicios -->
+              <button type="button" class="btn-anadir-ej-dia-unico btn-touch-accessible" (click)="abrirCatalogParaRutina(rutina.id!, diaFocus.dia)">
+                + Añadir Ejercicio
+              </button>
+
+              <!-- Botón ▶ Iniciar Entrenamiento de DÍA al pie de la caja -->
+              <a [routerLink]="['/entrenamiento', rutina.id]" [queryParams]="{ dia: diaFocus.dia }" class="btn-iniciar-entreno-dia-footer btn-touch-accessible">
+                ▶ Iniciar Entrenamiento de {{ diaFocus.dia }}
+              </a>
+
+            } @else if (diaFocus.esActivo && diaFocus.ejercicios.length === 0) {
+              <!-- DÍA ACTIVO SIN EJERCICIOS -->
+              <div class="dia-activo-vacio-box animate-fade-in">
+                <span class="icono-activo-vacio">⚡</span>
+                <h3>Día de entrenamiento activo</h3>
+                <p>Aún no has agregado ejercicios para el {{ diaFocus.dia }}. ¡Agrega tus primeros ejercicios!</p>
+                <button type="button" class="btn-anadir-ej-dia-unico btn-touch-accessible" (click)="abrirCatalogParaRutina(rutina.id!, diaFocus.dia)">
+                  + Añadir Ejercicios a {{ diaFocus.dia }}
+                </button>
+              </div>
+
+            } @else {
+              <!-- DÍA SUSPENDIDO / DESCANSO / BLOQUEADO -->
+              <div class="dia-descanso-box dia-bloqueado-box animate-fade-in">
+                <div class="bloqueo-badge-wrap">
+                  <span class="icono-descanso">🌱</span>
+                  <span class="icono-lock-overlay">🔒</span>
+                </div>
+                <h3>Día de descanso programado</h3>
+                <p>El <strong>{{ diaFocus.dia }}</strong> no fue seleccionado para entrenar en esta rutina y se encuentra suspendido.</p>
+                
+                <!-- BOTÓN PARA HABILITAR DÍA CON CONFIRMACIÓN -->
+                <button type="button" 
+                        class="btn-habilitar-dia-entreno btn-touch-accessible"
+                        (click)="habilitarDiaParaRutina(rutina.id!, diaFocus.dia)">
+                  ⚡ Habilitar {{ diaFocus.dia }} para Entrenar
+                </button>
+              </div>
+            }
+
+          </div>
+        }
+
+      </div>
+    } @else {
+      <div class="rutina-detalle-panel animate-fade-in">
+          <div class="rutina-sin-ejercicios-box">
+            <span class="icono-vacio-rd">📋</span>
+            <h4>No tienes ninguna rutina seleccionada</h4>
+            <p>Crea una nueva rutina o selecciona una de tus rutinas arriba para ver su programación semanal.</p>
+            <button type="button" class="btn-abrir-catalog-cta btn-touch-accessible" (click)="abrirModal()">
+              + Crear Nueva Rutina
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+
+  <!-- ==================== MODAL DE CREACIÓN DE NUEVA RUTINA ==================== -->
+  @if (mostrarModalCrear()) {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal-content modal-nueva-rutina-compacto animate-fade-in" (click)="$event.stopPropagation()">
+        <div class="modal-nueva-rutina-header">
+          <div class="mnh-info">
+            <span class="badge-crear-tag">✨ Nueva Rutina</span>
+            <h2>Crear Nueva Rutina</h2>
+            <p>Ingresa el nombre y selecciona los días de entrenamiento para comenzar.</p>
+          </div>
+          <button type="button" class="btn-cerrar-modal" (click)="cerrarModal()" title="Cerrar">&times;</button>
+        </div>
+
+        <form [formGroup]="rutinaForm" (ngSubmit)="guardarRutina()" class="form-nueva-rutina-simple">
+          
+          <!-- 1. NOMBRE DE LA RUTINA -->
+          <div class="form-grupo-modal">
+            <label for="nombreRutinaInput">
+              <span class="label-badge">1</span> Nombre de la Rutina:
+            </label>
+            <input type="text" 
+                   id="nombreRutinaInput" 
+                   formControlName="nombre" 
+                   placeholder="Ej. Mi Rutina Semanal, Rutina Torso/Pierna..." 
+                   class="input-nombre-rutina"
+                   autocomplete="off"
+                   autofocus>
+          </div>
+
+          <!-- 2. NIVEL DE DIFICULTAD -->
+          <div class="form-grupo-modal">
+            <label for="nivelRutinaSelect">
+              <span class="label-badge">2</span> Nivel de Dificultad:
+            </label>
+            <select id="nivelRutinaSelect" formControlName="nivelDificultad" class="select-nivel-rutina">
+              <option value="PRINCIPIANTE">🟢 Principiante</option>
+              <option value="INTERMEDIO">🟡 Intermedio</option>
+              <option value="AVANZADO">🔴 Avanzado</option>
+            </select>
+          </div>
+
+          <!-- 3. DÍAS DE LA SEMANA A ENTRENAR -->
+          <div class="form-grupo-modal">
+            <label>
+              <span class="label-badge">3</span> Selecciona los días que entrenarás:
+            </label>
+            <div class="dias-selector-grid">
+              @for (dia of diasSemanaList; track $index) {
+                <button type="button" 
+                        class="btn-dia-selector-chip btn-touch-accessible"
+                        [class.seleccionado]="diasSeleccionadosParaRutina().includes(dia)"
+                        (click)="toggleDiaRutina(dia)">
+                  <span class="dia-chk">{{ diasSeleccionadosParaRutina().includes(dia) ? '✓' : '+' }}</span>
+                  <span class="dia-txt">{{ dia }}</span>
+                </button>
+              }
+            </div>
+            <div class="dias-seleccionados-hint">
+              <span>Días asignados: <strong>{{ diasSeleccionadosParaRutina().length }}</strong></span>
+              <span class="dias-lista-sub">{{ diasSeleccionadosParaRutina().join(' • ') }}</span>
+            </div>
+          </div>
+
+          <!-- BOTONES DE ACCIÓN: CANCELAR Y CONTINUAR -->
+          <div class="modal-footer-acciones">
+            <button type="button" class="btn-cancelar-modal btn-touch-accessible" (click)="cerrarModal()">
+              Cancelar
+            </button>
+            <button type="submit" 
+                    class="btn-continuar-crear btn-touch-accessible" 
+                    [disabled]="rutinaForm.invalid || diasSeleccionadosParaRutina().length === 0">
+              Continuar ➔
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+  @if (mostrarSelectorCatalog()) {
+    <div class="modal-overlay selector-catalog-overlay" (click)="cerrarCatalog()">
+      <div class="modal-content selector-catalog-content" (click)="$event.stopPropagation()">
+        <button type="button" class="btn-cerrar-modal" (click)="cerrarCatalog()">&times;</button>
+        
+        <h2>Catálogo de Ejercicios &mdash; Agregar a {{ diaSeleccionado() }}</h2>
+        <p class="sub">Busca y agrega variantes o máquinas directamente. Configura series, reps y peso antes de agregar.</p>
+ 
+        <!-- Filtros Rápidos de Búsqueda -->
+        <div class="catalog-filtros-seccion">
+          <input type="text" 
+                 class="search-catalog" 
+                 placeholder="Buscar ejercicios (Ej. sentadilla, triceps...)" 
+                 [value]="buscarTerminoCatalog()" 
+                 (input)="buscarTerminoCatalog.set($any($event.target).value)">
+ 
+          <div class="filtros-catalog-grupos">
+            @for (grupo of gruposMusculares; track $index) {
+              <button type="button" 
+                      class="btn-filtro-catalog" 
+                      [class.activo]="grupoSeleccionadoCatalog() === grupo"
+                      (click)="seleccionarGrupoCatalog(grupo)">
+                {{ grupo }}
+              </button>
+            }
+          </div>
+        </div>
+ 
+        <!-- Nivel 2: Tarjetas de Subcategoría (Cajas) -->
+        @if (!buscarTerminoCatalog().trim() && nivelExploracionCatalog() === 'SUBCATEGORIA') {
+          <div class="subcategorias-cajas-grid animate-fade-in">
+            @for (subcat of subcategoriasTarjetasCatalog(); track $index) {
+              <div class="subcategoria-caja-card" (click)="seleccionarSubcategoriaCatalog(subcat)">
+                <!-- IZQUIERDA: IMAGEN DEL EJERCICIO / MÚSCULO -->
+                <div class="caja-imagen-musculo">
+                  @if (obtenerSubcategoriaImagenCatalog(subcat); as imgUrl) {
+                    <img [src]="imgUrl" [alt]="subcat" class="img-musculo-referencial">
+                  } @else {
+                    <span class="icono-musculo-fallback">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M2 8h4M2 16h4M18 8h4M18 16h4M6 12h12"/></svg>
+                    </span>
+                  }
+                </div>
+                <!-- DERECHA: NOMBRE DE EJERCICIO Y CONTEO -->
+                <div class="caja-info">
+                  <h3>{{ subcat }}</h3>
+                  <p class="conteo-ejercicios">{{ obtenerConteoEjerciciosCatalog(subcat) }} ejercicios disponibles</p>
+                  <span class="caja-flecha">&rarr;</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Nivel 3: Listado de Ejercicios Filtrados (Divididos por Tipo o Grid de Búsqueda) -->
+        @if (buscarTerminoCatalog().trim() || nivelExploracionCatalog() === 'EJERCICIOS') {
+          @if (nivelExploracionCatalog() === 'EJERCICIOS' && !buscarTerminoCatalog().trim()) {
+            <div class="catalog-modal-nav animate-fade-in">
+              <button class="btn-volver-nivel" (click)="volverASubcategoriasCatalog()">
+                &larr; Volver a regiones de {{ grupoSeleccionadoCatalog() }}
+              </button>
+              <h2 class="subcategoria-titulo-header">
+                Región: <span>{{ subcategoriaSeleccionadaCatalog() }}</span>
+              </h2>
+            </div>
+          }
+
+          @if (ejerciciosCatalogFiltrados().length === 0) {
+            <p class="sin-resultados-catalog">No se encontraron ejercicios con los filtros actuales.</p>
+          } @else {
+            @if (grupoSeleccionadoCatalog() === 'TODOS' || buscarTerminoCatalog().trim()) {
+              <!-- Grid simple para TODOS o búsquedas estilo catálogo -->
+              <div class="ejercicios-grid animate-fade-in">
+                @for (ejercicio of ejerciciosCatalogFiltrados(); track ejercicio.id) {
+                  <div class="ejercicio-card" (click)="verDetalleEjercicio(ejercicio)">
+                    <div class="card-imagen-placeholder">
+                      @if (obtenerPortadaEjercicio(ejercicio); as portadaUrl) {
+                        <img [src]="portadaUrl" [alt]="ejercicio.nombre">
+                      } @else {
+                        <span class="card-icon">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M2 8h4M2 16h4M18 8h4M18 16h4M6 12h12"/></svg>
+                        </span>
+                      }
+                      <div class="badges-container">
+                        <span class="badge-grupo">{{ ejercicio.grupoMuscular }}</span>
+                        @if (ejercicio.subcategoria) {
+                          <span class="badge-subcategoria">{{ ejercicio.subcategoria }}</span>
+                        }
+                        @if (ejercicio.tipo) {
+                          <span class="badge-tipo" [class.compuesto]="ejercicio.tipo === 'COMPUESTO'">
+                            {{ ejercicio.tipo }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    <div class="card-info">
+                      <h3>{{ ejercicio.nombre }}</h3>
+                      <p>{{ ejercicio.descripcion || 'Sin descripción disponible.' | slice:0:80 }}...</p>
+                      <div class="card-acciones-flex">
+                        <span class="btn-ver-mas">Ver detalles &rarr;</span>
+                        <button type="button" class="btn-card-agregar-quick" (click)="abrirConfiguracionEjercicio(ejercicio); $event.stopPropagation()">
+                          + Añadir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <!-- Formato exacto de dos columnas: Compuestos vs Aislamiento como en /ejercicios -->
+              <div class="ejercicios-columnas-layout animate-fade-in">
+                <!-- Columna Compuestos -->
+                <div class="columna-ejercicios compuestos">
+                  <div class="columna-header compuesto-header">
+                    <h3>
+                      <span class="header-title-text">
+                        Compuestos
+                        <span class="info-tooltip-wrapper">
+                          <span class="info-icon">ⓘ</span>
+                          <span class="tooltip-box">Es recomendable empezar con estos ejercicios. Trabajan varios músculos a la vez y te permiten levantar más peso cuando tienes más energía.</span>
+                        </span>
+                        @if (grupoSeleccionadoCatalog().toUpperCase() === 'ESPALDA' && subcategoriaSeleccionadaCatalog() !== 'TODOS') {
+                          <span class="badge-espalda-tipo">
+                            {{ subcategoriaSeleccionadaCatalog() }}
+                            <span class="info-tooltip-wrapper inline-tooltip">
+                              <span class="info-icon">ⓘ</span>
+                              <span class="tooltip-box">{{ subcategoriaDescripciones[subcategoriaSeleccionadaCatalog().toUpperCase()] }}</span>
+                            </span>
+                          </span>
+                        }
+                      </span>
+                      <span class="badge-count">{{ compuestosFiltradosCatalog().length }}</span>
+                    </h3>
+                    <p class="subtitle">Ejercicios multiarticulares para fuerza y masa general.</p>
+                  </div>
+                  
+                  @if (compuestosFiltradosCatalog().length === 0) {
+                    <div class="columna-vacia">
+                      <p>No se encontraron ejercicios compuestos para esta región.</p>
+                    </div>
+                  } @else {
+                    <div class="columna-grid">
+                      @for (ejercicio of compuestosFiltradosCatalog(); track ejercicio.id) {
+                        <div class="ejercicio-card card-mini" (click)="verDetalleEjercicio(ejercicio)">
+                          <div class="card-info">
+                            <h4>{{ ejercicio.nombre }}</h4>
+                            <p>{{ ejercicio.descripcion || 'Sin descripción disponible.' | slice:0:110 }}...</p>
+                            <div class="card-acciones-flex">
+                              <span class="btn-ver-mas" (click)="verDetalleEjercicio(ejercicio); $event.stopPropagation()">Detalles &rarr;</span>
+                              <button type="button" class="btn-card-agregar-quick" (click)="abrirConfiguracionEjercicio(ejercicio); $event.stopPropagation()">
+                                + Añadir
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Columna Aislamientos -->
+                <div class="columna-ejercicios aislamientos">
+                  <div class="columna-header aislamiento-header">
+                    <h3>
+                      <span class="header-title-text">
+                        Aislamiento
+                        <span class="info-tooltip-wrapper">
+                          <span class="info-icon">ⓘ</span>
+                          <span class="tooltip-box">Es recomendable hacer ejercicios de aislamiento al final de tu rutina, luego de haber fatigado el músculo con los ejercicios compuestos, para enfocar el esfuerzo en una sola zona y lograr un bombeo máximo.</span>
+                        </span>
+                      </span>
+                      <span class="badge-count">{{ aislamientosFiltradosCatalog().length }}</span>
+                    </h3>
+                    <p class="subtitle">Movimientos monoarticulares para enfocar y bombear el músculo objetivo.</p>
+                  </div>
+
+                  @if (aislamientosFiltradosCatalog().length === 0) {
+                    <div class="columna-vacia">
+                      <p>No se encontraron ejercicios de aislamiento para esta región.</p>
+                    </div>
+                  } @else {
+                    <div class="columna-grid">
+                      @for (ejercicio of aislamientosFiltradosCatalog(); track ejercicio.id) {
+                        <div class="ejercicio-card card-mini" (click)="verDetalleEjercicio(ejercicio)">
+                          <div class="card-info">
+                            <h4>{{ ejercicio.nombre }}</h4>
+                            <p>{{ ejercicio.descripcion || 'Sin descripción disponible.' | slice:0:110 }}...</p>
+                            <div class="card-acciones-flex">
+                              <span class="btn-ver-mas" (click)="verDetalleEjercicio(ejercicio); $event.stopPropagation()">Detalles &rarr;</span>
+                              <button type="button" class="btn-card-agregar-quick" (click)="abrirConfiguracionEjercicio(ejercicio); $event.stopPropagation()">
+                                + Añadir
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        }
+        
+        <div class="modal-acciones text-right">
+          <button type="button" class="btn-guardar btn-touch-accessible" (click)="cerrarCatalog()">
+            ✓ Listo / Finalizar Selección de {{ diaSeleccionado() }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODAL DE CONFIGURACIÓN RÁPIDA DE EJERCICIO ==================== -->
+  @if (mostrarModalConfigEjercicio() && ejercicioParaConfigurar(); as ejConfig) {
+    <div class="modal-overlay config-ejercicio-overlay animate-fade-in" (click)="cerrarModalConfigEjercicio()">
+      <div class="modal-content modal-config-ejercicio-dialog" (click)="$event.stopPropagation()">
+        <button type="button" class="btn-cerrar-modal" (click)="cerrarModalConfigEjercicio()" title="Cerrar">&times;</button>
+        
+        <!-- Cabecera del Dialog con Portada, Título y Badges -->
+        <div class="config-dialog-header">
+          <div class="ej-header-thumb">
+            @if (obtenerUrlFotoActiva(ejConfig, 1); as thumb) {
+              <img [src]="thumb" [alt]="ejConfig.nombre" class="thumb-mini">
+            } @else {
+              <span class="thumb-fallback">🏋️‍♂️</span>
+            }
+          </div>
+          <div class="ej-header-txt">
+            <span class="dialog-step-tag">✨ Paso 2: Personalizar Entrenamiento</span>
+            <h3>{{ ejConfig.nombre }}</h3>
+            <div class="header-tags-row">
+              <span class="ej-grupo-pill">{{ ejConfig.grupoMuscular }}</span>
+              @if (ejConfig.subcategoria) {
+                <span class="ej-subcat-pill">{{ ejConfig.subcategoria }}</span>
+              }
+              @if (ejConfig.tipo) {
+                <span class="ej-tipo-pill" [class.compuesto]="ejConfig.tipo === 'COMPUESTO'">{{ ejConfig.tipo }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector Rápido del Día de la Semana -->
+        <div class="config-dia-selector-section">
+          <div class="section-label-row">
+            <span class="lbl-txt">📅 Asignar al día:</span>
+            <span class="dia-actual-highlight">{{ diaSeleccionado() || 'LUNES' }}</span>
+          </div>
+          <div class="dias-mini-chips-grid">
+            @for (d of diasSemanaList; track $index) {
+              <button type="button" 
+                      class="btn-dia-chip btn-touch-accessible" 
+                      [class.activo]="(diaSeleccionado() || 'LUNES') === d" 
+                      (click)="diaSeleccionado.set(d); diaSeleccionadoTab.set(d)">
+                {{ d | slice:0:3 }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="config-dialog-body">
+          <!-- Grid de Parámetros: Series, Reps y Peso -->
+          <div class="params-grid-trio">
+            
+            <!-- Stepper Series -->
+            <div class="param-row-card">
+              <div class="param-info">
+                <label>Series</label>
+                <span class="param-hint">Efectivas</span>
+              </div>
+              <div class="stepper-control">
+                <button type="button" class="btn-step btn-touch-accessible" (click)="decrementarSeries()" title="Disminuir series">-</button>
+                <input type="number" class="step-val" [value]="configSeries()" (focus)="$any($event.target).select()" (input)="configSeries.set($any($event.target).valueAsNumber || 1)" min="1" max="20">
+                <button type="button" class="btn-step btn-touch-accessible" (click)="incrementarSeries()" title="Aumentar series">+</button>
+              </div>
+            </div>
+
+            <!-- Stepper Repeticiones (Rango Mín - Máx) -->
+            <div class="param-row-card reps-range-card">
+              <div class="param-info">
+                <label>Repeticiones (Rango)</label>
+                <span class="param-hint">Mínimo a Máximo por serie</span>
+              </div>
+              <div class="reps-range-row">
+                <div class="stepper-mini-group">
+                  <span class="mini-tag">Mín:</span>
+                  <div class="stepper-control stepper-mini">
+                    <button type="button" class="btn-step btn-touch-accessible" (click)="decrementarReps()" title="Disminuir mínimo">-</button>
+                    <input type="number" class="step-val" [value]="configReps()" (focus)="$any($event.target).select()" (input)="configReps.set($any($event.target).valueAsNumber || 1)" min="1" max="100">
+                    <button type="button" class="btn-step btn-touch-accessible" (click)="incrementarReps()" title="Aumentar mínimo">+</button>
+                  </div>
+                </div>
+                <span class="reps-range-separator">a</span>
+                <div class="stepper-mini-group">
+                  <span class="mini-tag">Máx:</span>
+                  <div class="stepper-control stepper-mini">
+                    <button type="button" class="btn-step btn-touch-accessible" (click)="decrementarRepsMax()" title="Disminuir máximo">-</button>
+                    <input type="number" class="step-val" [value]="configRepsMax()" (focus)="$any($event.target).select()" (input)="configRepsMax.set($any($event.target).valueAsNumber || 1)" min="1" max="100">
+                    <button type="button" class="btn-step btn-touch-accessible" (click)="incrementarRepsMax()" title="Aumentar máximo">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stepper Peso / Carga Total -->
+            <div class="param-row-card">
+              <div class="param-info">
+                <label>
+                  @if (esEjercicioUnilateral(ejConfig)) {
+                    Peso por mano / lado
+                  } @else if (esEjercicioPesoCorporal(ejConfig)) {
+                    Lastre adicional
+                  } @else if (esEjercicioConBarra(ejConfig)) {
+                    Peso Total (Barra + Discos)
+                  } @else {
+                    Peso / Carga Total
+                  }
+                  <button type="button" class="btn-info-descanso btn-info-peso" (click)="toggleInfoPeso()" title="Ver guía de carga total">
+                    ⓘ
+                  </button>
+                </label>
+                <span class="param-hint">
+                  @if (esEjercicioUnilateral(ejConfig)) {
+                    (Ej: 7 {{ acc.unidadPeso() }} por lado)
+                  } @else if (esEjercicioPesoCorporal(ejConfig)) {
+                    (0 {{ acc.unidadPeso() }} = solo tu cuerpo)
+                  } @else {
+                    ({{ acc.unidadPeso() }} total levantado)
+                  }
+                </span>
+              </div>
+              <div class="stepper-control weight-stepper">
+                <button type="button" class="btn-step btn-step-kg btn-touch-accessible" (click)="decrementarPeso(2.5)" title="Menos peso">-2.5</button>
+                <input type="number" class="step-val weight-val" [value]="configPeso()" (focus)="$any($event.target).select()" (input)="configPeso.set($any($event.target).valueAsNumber || 0)" min="0" step="0.5">
+                <button type="button" class="btn-step btn-step-kg btn-touch-accessible" (click)="incrementarPeso(2.5)" title="Más peso">+2.5</button>
+              </div>
+            </div>
+
+            <!-- Panel Informativo Expandible de Carga Total -->
+            @if (mostrarInfoPeso()) {
+              <div class="info-descanso-box info-peso-box animate-fade-in">
+                <h4>Guía de registro de peso:</h4>
+                <ul>
+                  <li><strong>Ejercicios con barra:</strong> El peso incluye la barra (Ej: la barra olímpica estándar suma 20 kg).</li>
+                  <li><strong>Ejercicios unilaterales:</strong> Anota solo el peso de un lado o mancuerna (Ej: si usas dos mancuernas de 7 kg, anota solo 7 kg).</li>
+                  <li><strong>Peso corporal:</strong> Si usas solo tu propio peso anota 0 kg, de lo contrario anota el peso adicional.</li>
+                </ul>
+              </div>
+            }
+
+          </div>
+
+          <!-- Tiempo de Descanso con Presets y Recomendación Científica -->
+          <div class="param-row-card descanso-card">
+            <div class="descanso-header-row">
+              <div class="param-info">
+                <label>
+                  ⏱️ Descanso entre Series
+                  <button type="button" class="btn-info-descanso" (click)="toggleInfoDescanso()" title="Ver recomendaciones científicas">
+                    ⓘ
+                  </button>
+                </label>
+                <span class="param-hint">Programado: <strong>{{ configDescanso() }}s ({{ (configDescanso() / 60).toFixed(1) }} min)</strong></span>
+              </div>
+            </div>
+
+            <!-- Panel Informativo Expandible de Descanso -->
+            @if (mostrarInfoDescanso()) {
+              <div class="info-descanso-box animate-fade-in">
+                <h4>💡 Recomendación Científica:</h4>
+                <ul>
+                  <li><strong>3 min (180s):</strong> Fuerza y ejercicios compuestos pesados (Press plano, Sentadilla, Peso muerto, Remos).</li>
+                  <li><strong>2 min (120s):</strong> Hipertrofia y desarrollo muscular general.</li>
+                  <li><strong>1 - 1.5 min (60-90s):</strong> Aislamiento, brazos, hombros y congestión.</li>
+                </ul>
+              </div>
+            }
+
+            <!-- Botones Rápidos de Selección de Descanso -->
+            <div class="preset-pills-grid">
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 300" 
+                      (click)="establecerDescansoPreset(300)">
+                <span class="time-main">5 min (300s)</span>
+                <span class="time-sub">Powerlifting</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 240" 
+                      (click)="establecerDescansoPreset(240)">
+                <span class="time-main">4 min (240s)</span>
+                <span class="time-sub">Fuerza Máx.</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 180" 
+                      (click)="establecerDescansoPreset(180)">
+                <span class="time-main">3 min (180s)</span>
+                <span class="time-sub">Fuerza / Pesados</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 150" 
+                      (click)="establecerDescansoPreset(150)">
+                <span class="time-main">2.5 min (150s)</span>
+                <span class="time-sub">Mixto</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 120" 
+                      (click)="establecerDescansoPreset(120)">
+                <span class="time-main">2 min (120s)</span>
+                <span class="time-sub">Hipertrofia</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 90" 
+                      (click)="establecerDescansoPreset(90)">
+                <span class="time-main">1.5 min (90s)</span>
+                <span class="time-sub">Aislamiento</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 60" 
+                      (click)="establecerDescansoPreset(60)">
+                <span class="time-main">1 min (60s)</span>
+                <span class="time-sub">Resistencia</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 45" 
+                      (click)="establecerDescansoPreset(45)">
+                <span class="time-main">45s</span>
+                <span class="time-sub">HIIT / Circuito</span>
+              </button>
+              <button type="button" 
+                      class="btn-preset-descanso btn-touch-accessible" 
+                      [class.activo]="configDescanso() === 30" 
+                      (click)="establecerDescansoPreset(30)">
+                <span class="time-main">30s</span>
+                <span class="time-sub">Superseries</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción del Dialog -->
+        <div class="config-dialog-footer">
+          <button type="button" class="btn-cancelar-dialog btn-touch-accessible" (click)="cerrarModalConfigEjercicio()">
+            Cancelar
+          </button>
+          <button type="button" 
+                  class="btn-confirmar-agregar btn-touch-accessible" 
+                  (click)="confirmarAgregarEjercicio()">
+            <span>✓ Añadir a mi Rutina</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal para habilitar/deshabilitar días de entrenamiento -->
+  @if (mostrarModalDias()) {
+    <div class="modal-overlay" (click)="cerrarModalDias()">
+      <div class="modal-content modal-dias-content" (click)="$event.stopPropagation()">
+        <button type="button" class="btn-cerrar-modal" (click)="cerrarModalDias()">&times;</button>
+        
+        <h2>Habilitar/Deshabilitar Días de Entrenamiento</h2>
+        <p class="selector-sub-txt">Marca qué días irás al gimnasio. Las celdas de los días desactivados se inhabilitarán como descanso.</p>
+        
+        <div class="dias-cuestionario-grid flex-row-layout">
+          @for (dia of diasSemanaList; track $index) {
+            <button type="button" 
+                    class="btn-dia-cuestionario" 
+                    [class.seleccionado]="diasEditando().includes(dia)"
+                    (click)="toggleDiaEdicion(dia)">
+              <span class="check-indicator"></span>
+              <span class="dia-nombre">{{ dia }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="modal-acciones text-right">
+          <button type="button" class="btn-cancelar" (click)="cerrarModalDias()">Cancelar</button>
+          <button type="button" class="btn-guardar" (click)="guardarDiasEditados()">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Detalle de Ejercicio (Desde Planner) -->
+  @if (ejercicioSeleccionadoDetalle(); as ejercicio) {
+    <div class="modal-overlay" (click)="cerrarDetalleEjercicio()">
+      <div class="modal-content modal-detalle-ejercicio modal-ejercicio-content animate-fade-in" (click)="$event.stopPropagation()">
+        
+        <!-- Barra de Navegación Superior con Botón Atrás Notorio -->
+        <div class="modal-top-nav-bar">
+          <button type="button" class="btn-volver-atras-modal btn-touch-accessible" (click)="cerrarDetalleEjercicio()">
+            <span class="btn-atras-arrow">&larr;</span>
+            <span class="btn-atras-text">Volver a la Rutina</span>
+          </button>
+          <button type="button" class="btn-cerrar-modal" (click)="cerrarDetalleEjercicio()" title="Cerrar modal">&times;</button>
+        </div>
+        
+        <div class="modal-ejercicio-header">
+          <div class="modal-header-info">
+            <h2>{{ ejercicio.nombre }}</h2>
+            <div class="badges-row">
+              <span class="modal-badge grupo">{{ ejercicio.grupoMuscular }}</span>
+              @if (ejercicio.subcategoria) {
+                <span class="modal-badge subcategoria">{{ ejercicio.subcategoria }}</span>
+              }
+              @if (ejercicio.tipo) {
+                <span class="modal-badge tipo" [class.compuesto]="ejercicio.tipo === 'COMPUESTO'">{{ ejercicio.tipo }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-ejercicio-body">
+          
+          <!-- PANEL SUPERIOR: EDICIÓN DE PARÁMETROS (SERIES, REPETICIONES, KILOS/PESO, TIEMPO DE DESCANSO) -->
+          @if (editandoRutinaId() !== null && editandoRutinaEjercicio()) {
+            <div class="panel-edicion-parametros animate-fade-in">
+              <div class="pep-header">
+                <div class="pep-badge-dia">
+                  <span class="pep-icon">⚡</span>
+                  <span>Ajustar Parámetros para <strong>{{ editandoDia() }}</strong></span>
+                </div>
+                <span class="pep-sub-hint">Edita tus series, repeticiones, kilos y tiempo de descanso para este ejercicio</span>
+              </div>
+
+              <div class="pep-grid-controles">
+                
+                <!-- 1. SERIES -->
+                <div class="pep-card-control">
+                  <span class="pep-label">Series</span>
+                  <div class="pep-stepper">
+                    <button type="button" class="btn-step" (click)="decrementarEditSeries()">−</button>
+                    <input type="number" class="pep-step-input" [value]="editSeries()" (focus)="$any($event.target).select()" (input)="editSeries.set($any($event.target).valueAsNumber || 1)" min="1" max="20">
+                    <button type="button" class="btn-step" (click)="incrementarEditSeries()">+</button>
+                  </div>
+                </div>
+
+                <!-- 2. REPETICIONES (RANGO MIN - MAX) -->
+                <div class="pep-card-control pep-reps-control">
+                  <span class="pep-label">Repeticiones (Rango Objetivo)</span>
+                  <div class="pep-rango-wrap">
+                    <div class="pep-stepper-mini">
+                      <span class="mini-lbl">Mín:</span>
+                      <button type="button" class="btn-step-mini" (click)="decrementarEditReps()">−</button>
+                      <input type="number" class="pep-step-mini-input" [value]="editReps()" (focus)="$any($event.target).select()" (input)="editReps.set($any($event.target).valueAsNumber || 1)" min="1" max="100">
+                      <button type="button" class="btn-step-mini" (click)="incrementarEditReps()">+</button>
+                    </div>
+                    <span class="rango-separator">a</span>
+                    <div class="pep-stepper-mini">
+                      <span class="mini-lbl">Máx:</span>
+                      <button type="button" class="btn-step-mini" (click)="decrementarEditRepsMax()">−</button>
+                      <input type="number" class="pep-step-mini-input" [value]="editRepsMax()" (focus)="$any($event.target).select()" (input)="editRepsMax.set($any($event.target).valueAsNumber || 1)" min="1" max="100">
+                      <button type="button" class="btn-step-mini" (click)="incrementarEditRepsMax()">+</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. PESO / KILOS -->
+                <div class="pep-card-control pep-peso-control">
+                  <span class="pep-label">
+                    Peso / Carga Total ({{ acc.unidadPeso() }})
+                    <button type="button" class="btn-info-descanso btn-info-peso" (click)="toggleInfoPeso()" title="Ver guía de carga total">
+                      ⓘ
+                    </button>
+                  </span>
+                  <div class="pep-peso-stepper">
+                    <button type="button" class="btn-step" (click)="decrementarEditPeso(2.5)">−</button>
+                    <div class="pep-input-with-unit">
+                      <input type="number" class="pep-step-input peso-destacado" [value]="editPeso()" (focus)="$any($event.target).select()" (input)="editPeso.set($any($event.target).valueAsNumber || 0)" min="0" step="0.5">
+                      <span class="unit-tag">{{ acc.unidadPeso() }}</span>
+                    </div>
+                    <button type="button" class="btn-step" (click)="incrementarEditPeso(2.5)">+</button>
+                  </div>
+                  @if (mostrarInfoPeso()) {
+                    <div class="info-descanso-box info-peso-box animate-fade-in" style="margin-top: 8px;">
+                      <h4>💡 Coloca el peso completo que cargas para un mejor analisis</h4>
+                    </div>
+                  }
+                  <div class="pep-quick-presets">
+                    <button type="button" class="btn-preset-chip" (click)="incrementarEditPeso(1.25)">+1.25</button>
+                    <button type="button" class="btn-preset-chip" (click)="incrementarEditPeso(2.5)">+2.5</button>
+                    <button type="button" class="btn-preset-chip" (click)="incrementarEditPeso(5)">+5</button>
+                    <button type="button" class="btn-preset-chip" (click)="incrementarEditPeso(10)">+10</button>
+                  </div>
+                </div>
+
+                <!-- 4. TIEMPO DE DESCANSO -->
+                <div class="pep-card-control pep-descanso-control">
+                  <span class="pep-label">Tiempo de Descanso</span>
+                  <div class="pep-descanso-stepper">
+                    <button type="button" class="btn-step" (click)="decrementarEditDescanso(15)">−</button>
+                    <div class="pep-input-with-unit">
+                      <input type="number" class="pep-step-input tiempo-destacado" [value]="editDescanso()" (focus)="$any($event.target).select()" (input)="editDescanso.set($any($event.target).valueAsNumber || 0)" min="10" max="600" step="5">
+                      <span class="unit-tag">{{ formatearTiempoDescanso(editDescanso()) }}</span>
+                    </div>
+                    <button type="button" class="btn-step" (click)="incrementarEditDescanso(15)">+</button>
+                  </div>
+                  <div class="pep-quick-presets">
+                    <button type="button" class="btn-preset-chip" [class.activo]="editDescanso() === 60" (click)="setEditDescanso(60)">1m</button>
+                    <button type="button" class="btn-preset-chip" [class.activo]="editDescanso() === 90" (click)="setEditDescanso(90)">1:30</button>
+                    <button type="button" class="btn-preset-chip" [class.activo]="editDescanso() === 120" (click)="setEditDescanso(120)">2m</button>
+                    <button type="button" class="btn-preset-chip" [class.activo]="editDescanso() === 180" (click)="setEditDescanso(180)">3m</button>
+                    <button type="button" class="btn-preset-chip" [class.activo]="editDescanso() === 240" (click)="setEditDescanso(240)">4m</button>
+                    <button type="button" class="btn-preset-chip" [class.activo]="editDescanso() === 300" (click)="setEditDescanso(300)">5m</button>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- BOTÓN PARA GUARDAR CAMBIOS -->
+              <div class="pep-footer-guardar">
+                <button type="button" 
+                        class="btn-guardar-edicion-ejercicio btn-touch-accessible" 
+                        [disabled]="guardandoEdicion()" 
+                        (click)="guardarEdicionParametros()">
+                  @if (guardandoEdicion()) {
+                    <span>Guardando cambios...</span>
+                  } @else {
+                    <span>💾 Guardar Cambios en {{ editandoDia() }}</span>
+                  }
+                </button>
+              </div>
+
+            </div>
+
+            <div class="separador-instrucciones">
+              <span class="si-badge">📖 Instrucciones y Guía Técnica</span>
+            </div>
+          }
+
+          <!-- VISOR DE IMAGEN AMPLIADA -->
+          @if (imagenAmpliada()) {
+            <div class="contenedor-imagen-ampliada animate-fade-in">
+              <div class="header-ampliada">
+                <span class="titulo-foto-ampliada">
+                  @if (activeMediaIndex() === 7) { Video Guía Demostrativo } @else { Foto {{ activeMediaIndex() }} - Ángulo de Detalle }
+                </span>
+                <button type="button" class="btn-cerrar-ampliada" (click)="cerrarImagenAmpliada()">
+                  Volver a Vista Normal
+                </button>
+              </div>
+
+              <div class="frame-foto-ampliada">
+                @if (activeMediaIndex() === 7 && (ejercicio.videoUrl || ejercicio.videoUrlHombre || ejercicio.videoUrlMujer)) {
+                  <video [src]="obtenerUrlFotoActiva(ejercicio, 7)" controls autoplay loop class="media-ampliada-elemento"></video>
+                } @else if (obtenerUrlFotoActiva(ejercicio, activeMediaIndex()); as fotoUrl) {
+                  <img [src]="fotoUrl" [alt]="ejercicio.nombre" class="media-ampliada-elemento">
+                } @else {
+                  <div class="empty-ampliada-placeholder">
+                    <span>Foto {{ activeMediaIndex() }} (Sin imagen cargada)</span>
+                  </div>
+                }
+              </div>
+
+              <!-- CUADRO DE DESCRIPCIÓN ADICIONAL -->
+              <div class="cuadro-breve-descripcion">
+                <span class="badge-info-icon">Descripción Técnica Adicional:</span>
+                <p class="txt-breve-desc">{{ obtenerDescripcionBreveMedia(activeMediaIndex()) }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="details-split-grid">
+              <!-- Columna Izquierda: Biomecánica y Cues Técnicos -->
+              <div class="details-biomecanica">
+                <h3>Instrucciones Técnicas y Biomecánica</h3>
+                <p class="txt-indicaciones">{{ obtenerIndicacionesCientificas(ejercicio.grupoMuscular, ejercicio.nombre) }}</p>
+              </div>
+
+              <!-- Columna Derecha: Guía Multimedia interactiva con límites por plan -->
+              <div class="details-multimedia">
+                <h3>Guía Multimedia Paso a Paso</h3>
+                
+                <!-- Tarjeta Destacada Foto 1 (Portada Principal) -->
+                <div class="foto1-card-principal" [class.activa]="activeMediaIndex() === 1" (click)="seleccionarYAmpliarMedia(1)">
+                  <div class="card-header-badge">
+                    <span>Foto 1 - Vista Principal</span>
+                    <span class="badge-gratis-pill">Clic para ampliar</span>
+                  </div>
+                  @if (obtenerUrlFotoActiva(ejercicio, 1); as foto1) {
+                    <img [src]="foto1" alt="Foto 1 Vista Principal" class="foto1-img-preview">
+                  } @else {
+                    <div class="empty-foto1-placeholder">
+                      <span>Foto 1 (Vista Principal)</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Botón Desplegable para Mostrar más fotos -->
+                <button type="button" class="btn-desplegar-multimedia" (click)="toggleDesplegarMultimedia()">
+                  @if (desplegarMultimedia()) {
+                    <span>▲ Ocultar ángulos adicionales</span>
+                  } @else {
+                    <span>Ver más ángulos (Fotos 2 a 6 y Video)</span>
+                  }
+                </button>
+
+                <!-- Fotos 2 a 6 y Video Desplegables -->
+                @if (desplegarMultimedia()) {
+                  <div class="mini-media-grid desplegado-grid animate-fade-in">
+                    <div class="mini-media-item" [class.activa]="activeMediaIndex() === 2" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 2)" (click)="seleccionarYAmpliarMedia(2)">
+                      <span>Foto 2</span>
+                    </div>
+                    <div class="mini-media-item" [class.activa]="activeMediaIndex() === 3" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 3)" (click)="seleccionarYAmpliarMedia(3)">
+                      <span>Foto 3</span>
+                    </div>
+                    
+                    @if (auth.plan() === 'PRO' || auth.esAdmin()) {
+                      <div class="mini-media-item animate-fade-in" [class.activa]="activeMediaIndex() === 4" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 4)" (click)="seleccionarYAmpliarMedia(4)"><span>Foto 4</span></div>
+                      <div class="mini-media-item animate-fade-in" [class.activa]="activeMediaIndex() === 5" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 5)" (click)="seleccionarYAmpliarMedia(5)"><span>Foto 5</span></div>
+                      <div class="mini-media-item animate-fade-in" [class.activa]="activeMediaIndex() === 6" [class.tiene-foto]="!!obtenerUrlFotoActiva(ejercicio, 6)" (click)="seleccionarYAmpliarMedia(6)"><span>Foto 6</span></div>
+                      <div class="mini-media-item video-col animate-fade-in" [class.activa]="activeMediaIndex() === 7" [class.tiene-foto]="!!(ejercicio.videoUrl || ejercicio.videoUrlHombre || ejercicio.videoUrlMujer)" (click)="seleccionarYAmpliarMedia(7)"><span>Video</span></div>
+                    } @else {
+                      <div class="mini-media-item locked" title="Solo disponible en Premium"><span>Foto 4</span></div>
+                      <div class="mini-media-item locked" title="Solo disponible en Premium"><span>Foto 5</span></div>
+                      <div class="mini-media-item locked" title="Solo disponible en Premium"><span>Foto 6</span></div>
+                      <div class="mini-media-item video-col locked" title="Solo disponible en Premium"><span>Video</span></div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Ejemplo Práctico de Ayuda -->
+          <div class="details-ejemplo">
+            <strong>Ejemplo de ejecución y progresión:</strong>
+            <p class="txt-ejemplo">{{ obtenerEjemploAyuda(ejercicio.grupoMuscular, ejercicio.nombre) }}</p>
+          </div>
+
+          <div class="modal-acciones-footer">
+            <button class="btn-cancelar" (click)="cerrarDetalleEjercicio()">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Notificación Toast Flotante -->
+  @if (toastMensaje()) {
+    <div class="floating-routine-toast animate-fade-in">
+      {{ toastMensaje() }}
+    </div>
+  }
+</div>

@@ -1,0 +1,107 @@
+@use '../login/login.scss';
+
+.requisitos-password {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #ef4444;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
+
+  p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.2s;
+
+    &.cumple {
+      color: #10b981;
+    }
+  }
+}
+
+.selector-genero-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+
+  .card-genero {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+    transition: all 0.2s ease;
+    color: #f8fafc;
+
+    .icono-genero {
+      font-size: 1.5rem;
+    }
+
+    .info-genero {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      .titulo-gen {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #f1f5f9;
+      }
+
+      .sub-gen {
+        font-size: 0.72rem;
+        color: #94a3b8;
+      }
+    }
+
+    .check-badge {
+      font-weight: bold;
+      color: #38bdf8;
+      font-size: 1rem;
+    }
+
+    &:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    &.activo {
+      border-color: #38bdf8;
+      background: rgba(14, 165, 233, 0.12);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+
+      .titulo-gen {
+        color: #38bdf8;
+      }
+    }
+
+    &.mujer {
+      &:hover {
+        border-color: rgba(236, 72, 153, 0.4);
+      }
+
+      &.activo {
+        border-color: #ec4899;
+        background: rgba(236, 72, 153, 0.12);
+        box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
+
+        .titulo-gen {
+          color: #f472b6;
+        }
+
+        .check-badge {
+          color: #f472b6;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+<div class="admin-pagos-container">
+  <div class="admin-header">
+    <h1>Auditoría de Pagos y Boletas</h1>
+    <p>Visualiza todas las transacciones premium realizadas y reenvía comprobantes de pago a tus clientes.</p>
+  </div>
+
+  @if (mensajeExito()) {
+    <div class="alerta alerta-exito">
+      {{ mensajeExito() }}
+    </div>
+  }
+
+  @if (mensajeError()) {
+    <div class="alerta alerta-error">
+      {{ mensajeError() }}
+    </div>
+  }
+
+  <!-- Listado de Boletas Globales -->
+  @if (boletas().length === 0) {
+    <div class="no-boletas">
+      <span class="icon">🧾</span>
+      <h3>Sin transacciones registradas</h3>
+      <p>Aún no se han realizado compras premium en la plataforma.</p>
+    </div>
+  } @else {
+    <div class="tabla-container">
+      <table class="tabla-boletas">
+        <thead>
+          <tr>
+            <th>Nro Boleta</th>
+            <th>Cliente</th>
+            <th>Email</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Método</th>
+            <th>Estado Correo</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (boleta of boletas(); track boleta.id) {
+            <tr>
+              <td><strong>{{ boleta.nroBoleta }}</strong></td>
+              <td>{{ boleta.pago?.usuario?.nombre || 'Desconocido' }}</td>
+              <td>{{ boleta.pago?.usuario?.email }}</td>
+              <td>S/ {{ boleta.pago?.monto }}</td>
+              <td>{{ boleta.fechaEmision | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td><span class="metodo-badge">{{ boleta.pago?.metodoPago }}</span></td>
+              <td>
+                <span class="envio-badge" [class.enviado]="boleta.enviadoPorCorreo">
+                  {{ boleta.enviadoPorCorreo ? 'Enviado' : 'Pendiente' }}
+                </span>
+              </td>
+              <td>
+                <div class="acciones-tabla">
+                  <button class="btn-reenviar" (click)="reenviarCorreo(boleta)">
+                    Reenviar Correo
+                  </button>
+                  @if (boleta.pdfUrl) {
+                    <a [href]="boleta.pdfUrl" target="_blank" class="btn-descargar">Ver TXT</a>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

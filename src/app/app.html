@@ -1,0 +1,120 @@
+<app-navbar></app-navbar>
+
+<app-ajustes-modal></app-ajustes-modal>
+
+<main class="contenedor-principal">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Barra de Navegación Móvil Inferior (Estilo Hevy / App Fitness Moderna) -->
+@if (!auth.esAdmin() && auth.estaAutenticado()) {
+  <nav class="bottom-nav-mobile" aria-label="Navegación Móvil">
+    <a routerLink="/rutinas" routerLinkActive="activo" class="bottom-nav-item">
+      <div class="bottom-nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <span class="bottom-nav-label">{{ acc.t('nav.rutinas') }}</span>
+    </a>
+
+    <a routerLink="/entrenamiento" routerLinkActive="activo" class="bottom-nav-item item-entrenamiento">
+      <div class="bottom-nav-icon icon-destacado">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 4v16M18 4v16M2 8h4M2 16h4M18 8h4M18 16h4M6 12h12"/>
+        </svg>
+      </div>
+      <span class="bottom-nav-label">{{ acc.t('nav.entrenamiento') }}</span>
+    </a>
+
+    <a routerLink="/ejercicios" routerLinkActive="activo" class="bottom-nav-item">
+      <div class="bottom-nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+      <span class="bottom-nav-label">{{ acc.t('nav.ejercicios') }}</span>
+    </a>
+
+    <a routerLink="/perfil" routerLinkActive="activo" class="bottom-nav-item">
+      <div class="bottom-nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <span class="bottom-nav-label">{{ acc.t('nav.perfil') }}</span>
+    </a>
+  </nav>
+}
+
+
+@if (infoModal.mostrarTerminos()) {
+  <div class="modal-overlay-info" (click)="infoModal.cerrarTerminos()">
+    <div class="modal-content-info" (click)="$event.stopPropagation()">
+      <button class="btn-cerrar-info" (click)="infoModal.cerrarTerminos()">&times;</button>
+      <h2>Términos y Condiciones de Uso</h2>
+      <div class="modal-body-info">
+        <p><strong>Última actualización: Septiembre 2026</strong></p>
+        
+        <h3>1. Aceptación de los Términos</h3>
+        <p>Al acceder y utilizar la aplicación FitnessGuide, usted acepta estar sujeto a estos términos y condiciones. Esta plataforma está diseñada como una guía educativa, organizativa y de seguimiento de ejercicios y rutinas de gimnasio.</p>
+        
+        <h3>2. Responsabilidad y Consulta Médica</h3>
+        <p>El entrenamiento con pesas y el ejercicio de alta intensidad conllevan exigencia física. Se recomienda consultar con un médico o profesional de la salud antes de iniciar cualquier programa de entrenamiento intenso, especialmente si presenta condiciones preexistentes o lesiones.</p>
+        
+        <h3>3. Uso de la Guía y Planificador</h3>
+        <p>FitnessGuide proporciona sugerencias biomecánicas, series, repeticiones y tiempos de descanso recomendados basados en principios de fuerza e hipertrofia. El usuario es responsable de ejecutar los movimientos con técnica controlada y pesos adecuados a su capacidad.</p>
+        
+        <h3>4. Cuentas y Datos del Usuario</h3>
+        <p>El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso y de la veracidad de los datos registrados en su perfil y bitácora de entrenamiento.</p>
+      </div>
+    </div>
+  </div>
+}
+
+@if (infoModal.mostrarPoliticas()) {
+  <div class="modal-overlay-info" (click)="infoModal.cerrarPoliticas()">
+    <div class="modal-content-info" (click)="$event.stopPropagation()">
+      <button class="btn-cerrar-info" (click)="infoModal.cerrarPoliticas()">&times;</button>
+      <h2>Exención de Responsabilidad y Salud</h2>
+      <div class="modal-body-info">
+        <p><strong>Última actualización: Septiembre 2026</strong></p>
+        
+        <h3>1. Guía Informativa y Formativa</h3>
+        <p>La información, biomecánica y parámetros de entrenamiento mostrados en FitnessGuide tienen fines informativos, de planificación y educativos. No sustituyen el diagnóstico, asesoramiento o tratamiento médico personalizado.</p>
+        
+        <h3>2. Seguridad en la Ejecución</h3>
+        <p>Siempre priorice la técnica sobre el peso de carga. Si experimenta dolor punzante, mareos o molestias articulares durante un ejercicio, detenga la serie inmediatamente.</p>
+        
+        <h3>3. Progresión Responsable</h3>
+        <p>Aplique los principios de sobrecarga progresiva de manera gradual y respete los periodos de descanso y recuperación muscular recomendados.</p>
+      </div>
+    </div>
+  </div>
+}
+
+@if (infoModal.mostrarDatos()) {
+  <div class="modal-overlay-info" (click)="infoModal.cerrarDatos()">
+    <div class="modal-content-info" (click)="$event.stopPropagation()">
+      <button class="btn-cerrar-info" (click)="infoModal.cerrarDatos()">&times;</button>
+      <h2>Política de Privacidad y Datos</h2>
+      <div class="modal-body-info">
+        <p><strong>Última actualización: Septiembre 2026</strong></p>
+        
+        <h3>1. Recopilación de Información</h3>
+        <p>En FitnessGuide recopilamos únicamente los datos necesarios para personalizar su experiencia de entrenamiento (nombre, correo electrónico, nivel de experiencia, días de entrenamiento y registros de rutinas).</p>
+        
+        <h3>2. Protección de tus Registros</h3>
+        <p>Tus historiales de entrenamiento, cargas levantadas y rutinas planificadas se almacenan de manera segura y privada para tu uso exclusivo.</p>
+        
+        <h3>3. No Comercialización de Datos</h3>
+        <p>Nos comprometemos a no vender, ceder ni comercializar tu información personal con terceros.</p>
+      </div>
+    </div>
+  </div>
+}

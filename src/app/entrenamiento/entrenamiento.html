@@ -1,0 +1,279 @@
+<div class="entrenamiento-player-container">
+  @if (cargando()) {
+    <div class="cargando-estado animate-pulse">
+      <span class="spinner">⏳</span>
+      <p>Cargando tu sesión de entrenamiento...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-estado">
+      <span class="error-icon">⚠️</span>
+      <h3>Ocurrió un error</h3>
+      <p>No pudimos cargar la rutina seleccionada. Verifica que la rutina exista.</p>
+      <a routerLink="/rutinas" class="btn-volver">Volver a mis Rutinas</a>
+    </div>
+  } @else {
+    <!-- REPRODUCTOR SPLIT VIEW -->
+    <div class="player-box split-view">
+      
+      <!-- PANTALLA 1: PREPARACIÓN -->
+      @if (estado() === 'PREPARACION') {
+        <div class="pantalla-preparacion animate-fade-in">
+          <span class="rutina-icon">🏋️‍♂️</span>
+          <h1>{{ rutina()?.nombre }}</h1>
+          <p class="desc">{{ rutina()?.descripcion || 'Sin descripción para esta rutina.' }}</p>
+          
+          <div class="rutina-resumen-stats">
+            <span><b>Ejercicios:</b> {{ ejercicios().length }}</span>
+            <span><b>Dificultad:</b> {{ rutina()?.nivelDificultad }}</span>
+          </div>
+
+          <div class="lista-ejercicios-previa">
+            <h3>Lista de Ejercicios a Realizar:</h3>
+            <ul>
+              @for (re of ejercicios(); track (re.ejercicio.id + '_' + $index); let idx = $index) {
+                <li>
+                  <span class="num">{{ idx + 1 }}</span>
+                  <span class="nombre">{{ re.ejercicio.nombre }}</span>
+                  <span class="config-txt">{{ re.series }}x{{ re.repeticiones }} @if(re.pesoKg){ ({{ re.pesoKg }} kg) }</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <div class="acciones-previa">
+            <button class="btn-iniciar" (click)="iniciarEntrenamiento()">
+              🚀 Comenzar Entrenamiento
+            </button>
+            <a routerLink="/rutinas" class="btn-cancelar-preparacion">Regresar</a>
+          </div>
+        </div>
+      }
+
+      <!-- PANTALLA 2: ENTRENANDO (SPLIT VIEW) -->
+      @if (estado() === 'EJECUTANDO' || estado() === 'DESCANSO_LADO' || estado() === 'DESCANSO_SERIE') {
+        <div class="workout-runner-layout animate-fade-in">
+          
+          <!-- SIDEBAR: FILA DE EJERCICIOS -->
+          <div class="workout-sidebar">
+            <h3>Ejercicios de la Sesión</h3>
+            <div class="sidebar-lista-ejercicios">
+              @for (re of ejercicios(); track (re.ejercicio.id + '_' + $index); let idx = $index) {
+                <button type="button" 
+                        class="sidebar-ejercicio-btn" 
+                        [class.activo]="ejercicioActualIdx() === idx"
+                        [class.completado]="idx < ejercicioActualIdx()"
+                        (click)="seleccionarEjercicio(idx)">
+                  <span class="num-indicator">{{ idx + 1 }}</span>
+                  <div class="ej-meta-txt">
+                    <span class="name">{{ re.ejercicio.nombre }}</span>
+                    <span class="sub">{{ re.series }}x{{ re.repeticiones }} @if(re.pesoKg){ ({{ re.pesoKg }} kg) }</span>
+                  </div>
+                  @if (idx < ejercicioActualIdx()) {
+                    <span class="check-icon">✔️</span>
+                  }
+                </button>
+              }
+            </div>
+            
+            <div class="sidebar-cronometro">
+              <span>Tiempo de sesión:</span>
+              <strong>{{ formatearTiempo(duracionEntrenamientoSegundos()) }}</strong>
+            </div>
+
+            <button class="btn-finalizar-sesion-sidebar" (click)="finalizarEntrenamiento()">
+              ⏹️ Finalizar Entrenamiento
+            </button>
+          </div>
+
+          <!-- PANEL PRINCIPAL: RUNNER & BIOMECÁNICA -->
+          <div class="workout-main-panel">
+            
+            <!-- Modo Descanso -->
+            @if (estado() === 'DESCANSO_LADO' || estado() === 'DESCANSO_SERIE') {
+              <div class="pantalla-descanso-panel animate-fade-in">
+                <div class="descanso-label">
+                  {{ estado() === 'DESCANSO_LADO' ? '🔄 ¡Cambio de Lado!' : '⏳ Descanso entre Series' }}
+                </div>
+                @if (estado() === 'DESCANSO_LADO') {
+                  <h2>Prepárate para el lado: <span class="unil-highlight">{{ ladoActual() }}</span></h2>
+                } @else {
+                  <h2>Próxima serie: <b>{{ serieActual() }}</b> de {{ ejercicioActual()?.ejercicio?.nombre }}</h2>
+                }
+
+                <div class="timer-display">
+                  <span class="numero">{{ tiempoRestante() }}</span>
+                  <span class="leyenda">segundos de recuperación</span>
+                </div>
+
+                <button class="btn-saltar-descanso" (click)="saltarDescanso()">
+                  ⏩ Saltar Descanso
+                </button>
+              </div>
+            }
+
+            <!-- Modo Ejecución -->
+            @else {
+              <div class="ejercicio-ejecucion-panel">
+                <div class="ejercicio-panel-header">
+                  <span class="badge-numero">Ejercicio {{ ejercicioActualIdx() + 1 }} de {{ ejercicios().length }}</span>
+                  <h2>{{ ejercicioActual()?.ejercicio?.nombre }}</h2>
+                  <span class="badge-grupo">{{ ejercicioActual()?.ejercicio?.grupoMuscular }}</span>
+                </div>
+
+                <!-- Split de Contenido (Instrucciones Biomecánicas + Imagen/Placeholder) -->
+                <div class="ejercicio-contenido-split">
+                  
+                  <!-- Indicaciones Biomecánicas (Foco del estímulo) -->
+                  <div class="biomecanica-tips-card">
+                    <div class="card-header-biomec">
+                      <span class="icon">💡</span>
+                      <h4>Instrucciones Técnicas y Biomecánica</h4>
+                    </div>
+                    <p>{{ indicacionesBiomecanicas() }}</p>
+                    
+                    <!-- Ejemplo Práctico de Ayuda y Cadencia -->
+                    <div class="biomecanica-ejemplo-box" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed rgba(255, 255, 255, 0.15);">
+                      <strong style="color: #34d399; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">💪 Ejemplo y Cadencia:</strong>
+                      <p style="font-size: 0.85rem; color: #d1d5db; line-height: 1.4; margin: 0;">{{ ejemploPractico() }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Guía Multimedia -->
+                  <div class="media-gallery-card">
+                    <div class="card-header-media">
+                      <span class="icon">📸</span>
+                      <h4>Guía Multimedia</h4>
+                    </div>
+                    <div class="media-grid">
+                      <div class="media-item img-placeholder"><span>📷 Foto 1</span></div>
+                      <div class="media-item img-placeholder"><span>📷 Foto 2</span></div>
+                      <div class="media-item img-placeholder"><span>📷 Foto 3</span></div>
+                      
+                      @if (auth.esPremium()) {
+                        <div class="media-item img-placeholder animate-fade-in"><span>📷 Foto 4</span></div>
+                        <div class="media-item img-placeholder animate-fade-in"><span>📷 Foto 5</span></div>
+                        <div class="media-item video-placeholder animate-fade-in"><span>▶️ Video Guía</span></div>
+                      } @else {
+                        <div class="media-item img-placeholder locked-media" title="Solo disponible en Premium">
+                          <span>🔒 Foto 4</span>
+                        </div>
+                        <div class="media-item img-placeholder locked-media" title="Solo disponible en Premium">
+                          <span>🔒 Foto 5</span>
+                        </div>
+                        <div class="media-item video-placeholder locked-media" title="Solo disponible en Premium">
+                          <span>🔒 Video Guía</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Resumen de Parámetros -->
+                <div class="ejercicio-resumen-specs">
+                  <div class="spec-item">
+                    <span class="lbl">Repeticiones:</span>
+                    <strong class="val">{{ ejercicioActual()?.repeticiones }}</strong>
+                  </div>
+                  <div class="spec-item">
+                    <span class="lbl">Peso:</span>
+                    <strong class="val">{{ ejercicioActual()?.pesoKg || 0 }} kg</strong>
+                  </div>
+                  <div class="spec-item edit-descanso">
+                    <span class="lbl">Descanso:</span>
+                    <strong class="val">
+                      <input type="number" 
+                             class="input-descanso" 
+                             [ngModel]="ejercicioActual()?.descansoSeriesSegundos" 
+                             (ngModelChange)="ejercicioActual()!.descansoSeriesSegundos = $event"
+                             min="10" step="5"> seg
+                    </strong>
+                  </div>
+                  @if (ejercicioActual()?.esUnilateral) {
+                    <div class="spec-item unilateral">
+                      <span class="lbl">Lado:</span>
+                      <strong class="val">{{ ladoActual() }}</strong>
+                    </div>
+                  }
+                </div>
+
+                <!-- Lista de Series en Filas -->
+                <div class="series-workout-list">
+                  <h3>Series del Ejercicio:</h3>
+                  @for (s of obtenerArrayDeSeries(ejercicioActual()?.series || 0); track $index; let sIdx = $index) {
+                    <div class="serie-workout-row" [class.completada]="esSerieCompletada(sIdx)">
+                      <div class="row-left">
+                        <span class="serie-badge">Serie {{ sIdx + 1 }}</span>
+                        <span class="serie-reps-peso">{{ ejercicioActual()?.repeticiones }} Reps @if(ejercicioActual()?.pesoKg){ x {{ ejercicioActual()?.pesoKg }} kg }</span>
+                      </div>
+                      
+                      <div class="row-right">
+                        <!-- Cronómetro/Temporizador de descanso -->
+                        <div class="serie-cronometro">
+                          <button type="button" 
+                                  class="cronometro-btn" 
+                                  [class.disabled-free]="!auth.esPremium()"
+                                  [disabled]="!auth.esPremium()"
+                                  (click)="toggleTimerDescansoSerie(sIdx, ejercicioActual()?.descansoSeriesSegundos || 60)"
+                                  [title]="auth.esPremium() ? 'Haz clic para iniciar/detener el descanso' : '🔒 Temporizador bloqueado (Requiere Premium)'">
+                            @if (!auth.esPremium()) {
+                              <span class="cronometro-disabled">🔒 Bloq.</span>
+                            } @else if (timerActivoSerieIdx() === sIdx) {
+                              <span class="cronometro-activo animate-pulse">⏳ {{ tiempoRestanteSerie() }}s</span>
+                            } @else {
+                              <span class="cronometro-default">⏹️ {{ ejercicioActual()?.descansoSeriesSegundos }}s</span>
+                            }
+                          </button>
+                        </div>
+
+                        <!-- Estado Completado -->
+                        <button type="button" 
+                                class="btn-check-serie" 
+                                [class.checked]="esSerieCompletada(sIdx)"
+                                (click)="toggleSerieCompletada(sIdx)">
+                          {{ esSerieCompletada(sIdx) ? '✅ Completado' : '⬜ Marcar Serie' }}
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Controles del Ejercicio -->
+                <div class="acciones-panel-runner">
+                  <button type="button" class="btn-siguiente-ejercicio-panel" (click)="pasarSiguienteEjercicio()">
+                    ➡️ {{ esUltimoEjercicio() ? 'Finalizar Sesión' : 'Siguiente Ejercicio' }}
+                  </button>
+                </div>
+              </div>
+            }
+
+          </div>
+
+        </div>
+      }
+
+      <!-- PANTALLA 3: COMPLETADO -->
+      @if (estado() === 'COMPLETADO') {
+        <div class="pantalla-completado animate-fade-in">
+          <span class="trofeo-icon">🏆</span>
+          <h1>¡Entrenamiento Completado!</h1>
+          <p class="completado-sub">Tu rutina se ha guardado en tu historial de progreso. ¡Excelente trabajo!</p>
+
+          <div class="resumen-final-box">
+            <div class="resumen-card">
+              <span class="resumen-val">{{ duracionFinalMinutos() }}</span>
+              <span class="resumen-lbl">Minutos Totales</span>
+            </div>
+            <div class="resumen-card">
+              <span class="resumen-val">{{ caloriasQuemadas() }}</span>
+              <span class="resumen-lbl">Calorías Quemadas (kcal)</span>
+            </div>
+          </div>
+
+          <a routerLink="/rutinas" class="btn-volver-inicio">Volver al Planificador</a>
+        </div>
+      }
+
+    </div>
+  }
+</div>

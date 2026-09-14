@@ -1,0 +1,148 @@
+.admin-pagos-container {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  color: #f3f4f6;
+
+  .admin-header {
+    margin-bottom: 2.5rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: #9ca3af;
+      font-size: 0.95rem;
+    }
+  }
+
+  .alerta {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+
+    &.alerta-exito {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    &.alerta-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+  }
+
+  .no-boletas {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(31, 41, 55, 0.3);
+    border-radius: 12px;
+    border: 1px dashed rgba(75, 85, 99, 0.4);
+
+    .icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #9ca3af;
+    }
+  }
+
+  .tabla-container {
+    background: rgba(31, 41, 55, 0.3);
+    border: 1px solid rgba(75, 85, 99, 0.2);
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  .tabla-boletas {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+
+    th, td {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+    }
+
+    th {
+      background: rgba(17, 24, 39, 0.3);
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    td {
+      color: #d1d5db;
+    }
+
+    .metodo-badge {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .envio-badge {
+      font-size: 0.8rem;
+      color: #f59e0b;
+
+      &.enviado {
+        color: #10b981;
+      }
+    }
+
+    .acciones-tabla {
+      display: flex;
+      gap: 0.5rem;
+
+      .btn-reenviar {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+          background: #10b981;
+          color: white;
+        }
+      }
+
+      .btn-descargar {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.8rem;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,744 @@
+<div class="admin-ejercicios-container">
+  <div class="admin-header">
+    <div>
+      <h1>Gestionar Ejercicios y Portadas</h1>
+      <p>Administración multimedia dual (Hombre 👨 y Mujer 👩) para el catálogo global.</p>
+    </div>
+    <div class="admin-header-actions">
+      <button class="btn-subcat-imagenes" (click)="vistaPrincipal.set('PORTADAS_SUBCATEGORIAS')">
+        🖼️ Portadas Músculos / Subcategorías
+      </button>
+      <button class="btn-crear" (click)="abrirCrear()">
+        ➕ Agregar Ejercicio
+      </button>
+    </div>
+  </div>
+
+  @if (mensaje()) {
+    <div class="alerta alerta-exito">
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (mensajeError()) {
+    <div class="alerta alerta-error">
+      {{ mensajeError() }}
+    </div>
+  }
+
+  <!-- SELECTOR DE VISTA PRINCIPAL (PESTAÑAS SUPERIORES) -->
+  <div class="selector-vista-principal">
+    <button class="btn-vista-tab" 
+            [class.activo]="vistaPrincipal() === 'EJERCICIOS'" 
+            (click)="vistaPrincipal.set('EJERCICIOS')">
+      📋 Ejercicios Específicos ({{ ejercicios().length }})
+    </button>
+    <button class="btn-vista-tab btn-vista-portadas" 
+            [class.activo]="vistaPrincipal() === 'PORTADAS_SUBCATEGORIAS'" 
+            (click)="vistaPrincipal.set('PORTADAS_SUBCATEGORIAS')">
+      🖼️ Portadas Músculos / Subcategorías (Imágenes Referenciales)
+    </button>
+  </div>
+
+  @if (vistaPrincipal() === 'EJERCICIOS') {
+    <!-- BARRA DE BÚSQUEDA Y FILTROS POR GRUPO MUSCULAR -->
+    <div class="filtros-bar">
+      <div class="buscador-admin">
+        <span class="lupa-icon">🔍</span>
+        <input type="text" 
+               placeholder="Buscar ejercicio por nombre o descripción..." 
+               [value]="filtroBusqueda()" 
+               (input)="filtroBusqueda.set($any($event.target).value)"
+               class="input-buscar-admin">
+        @if (filtroBusqueda()) {
+          <button class="btn-limpiar-busqueda" (click)="filtroBusqueda.set('')">&times;</button>
+        }
+      </div>
+
+      <div class="selector-grupo-admin">
+        <label for="selectGrupo">📂 Desplegable Grupo Muscular:</label>
+        <select id="selectGrupo" 
+                [value]="filtroGrupoMuscular()" 
+                (change)="filtroGrupoMuscular.set($any($event.target).value)" 
+                class="select-grupo">
+          <option value="TODOS">🏋️ Todos los Grupos ({{ ejercicios().length }})</option>
+          @for (grupo of gruposMusculares; track grupo) {
+            <option [value]="grupo">{{ grupo }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- BOTONES PESTAÑAS DE GRUPOS MUSCULARES -->
+    <div class="botones-grupos-musculares">
+      <button class="btn-grupo-tab" [class.activo]="filtroGrupoMuscular() === 'TODOS'" (click)="filtroGrupoMuscular.set('TODOS')">
+        🏋️ TODOS
+      </button>
+      @for (grupo of gruposMusculares; track grupo) {
+        <button class="btn-grupo-tab" 
+                [class.activo]="filtroGrupoMuscular() === grupo" 
+                (click)="filtroGrupoMuscular.set(grupo)">
+          {{ grupo }}
+        </button>
+      }
+    </div>
+
+    <!-- Listado de Ejercicios en Tabla con 2 Botones por Fila -->
+    <div class="tabla-container">
+      <table class="tabla-ejercicios">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Grupo / Subcategoría</th>
+            <th>Descripción</th>
+            <th>Multimedia Hombre y Mujer</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ej of ejerciciosFiltrados(); track ej.id) {
+            <tr>
+              <td class="col-id">{{ ej.id }}</td>
+              <td class="col-nombre"><strong>{{ ej.nombre }}</strong></td>
+              <td class="col-grupo">
+                <span class="badge-grupo">{{ ej.grupoMuscular }}</span>
+                @if (ej.subcategoria) {
+                  <span class="badge-subcat-row">{{ ej.subcategoria }}</span>
+                }
+              </td>
+              <td class="col-desc">{{ ej.descripcion || 'Sin descripción' | slice:0:90 }}...</td>
+              <td class="col-acciones">
+                <div class="acciones-dual-botones">
+                  <button class="btn-gestor-media-tabla btn-hombre" (click)="abrirGestorMedia(ej, 'HOMBRE')" title="Cargar fotos y video para versión masculina">
+                    👨 Cargar Fotos Hombre
+                  </button>
+                  <button class="btn-gestor-media-tabla btn-mujer" (click)="abrirGestorMedia(ej, 'MUJER')" title="Cargar fotos y video para versión femenina">
+                    👩 Cargar Fotos Mujer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="sin-resultados-td">
+                🔍 No se encontraron ejercicios que coincidan con la búsqueda o grupo muscular seleccionado.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- VISTA DEDICADA DE PORTADAS DE MÚSCULOS / SUBCATEGORÍAS (HOMBRE Y MUJER LADO A LADO) -->
+  @if (vistaPrincipal() === 'PORTADAS_SUBCATEGORIAS') {
+    <div class="seccion-portadas-subcategorias">
+      <div class="subcat-header-banner">
+        <div>
+          <h2>🖼️ Portadas Músculos / Subcategorías (Hombre 👨 y Mujer 👩)</h2>
+          <p>
+            Configura y recorta las imágenes referenciales anatómicas masculinas y femeninas para cada zona muscular (ej: <strong>PECTORAL ALTO, AMPLITUD, CUADRICEPS</strong>).
+          </p>
+        </div>
+      </div>
+
+      <!-- Filtro de Visualización y Pestañas de Grupo -->
+      <div class="filtros-portadas-top">
+        <div class="modal-subcat-tabs">
+          @for (grupo of gruposMusculares; track grupo) {
+            <button class="btn-subcat-tab" 
+                    [class.activo]="grupoSubcatModal() === grupo" 
+                    (click)="grupoSubcatModal.set(grupo)">
+              {{ grupo }}
+            </button>
+          }
+        </div>
+
+        <div class="selector-filtro-genero">
+          <span class="lbl-filtro">Ver:</span>
+          <button class="btn-f-gen" [class.activo]="filtroGeneroPortadas() === 'TODOS'" (click)="filtroGeneroPortadas.set('TODOS')">Ambos 👥</button>
+          <button class="btn-f-gen hombre" [class.activo]="filtroGeneroPortadas() === 'HOMBRE'" (click)="filtroGeneroPortadas.set('HOMBRE')">Solo Hombre 👨</button>
+          <button class="btn-f-gen mujer" [class.activo]="filtroGeneroPortadas() === 'MUJER'" (click)="filtroGeneroPortadas.set('MUJER')">Solo Mujer 👩</button>
+        </div>
+      </div>
+
+      <!-- Grid de Tarjetas de Subcategorías (Portadas Duales) -->
+      <div class="grid-subcategorias-admin">
+        @for (subcat of subcategoriasPorGrupoAdmin[grupoSubcatModal()]; track subcat) {
+          <div class="card-subcat-admin-media dual-gender-card">
+            <div class="subcat-card-header">
+              <div class="subcat-title-badge">
+                <span>{{ subcat }}</span>
+                <span class="grupo-label">({{ grupoSubcatModal() }})</span>
+              </div>
+              <div class="subcat-count-badge">
+                <span>📊 {{ contarEjerciciosSubcat(subcat) }} ejercicios</span>
+              </div>
+            </div>
+
+            <div class="dual-portadas-container">
+              <!-- COLUMNA HOMBRE 👨 -->
+              @if (filtroGeneroPortadas() === 'TODOS' || filtroGeneroPortadas() === 'HOMBRE') {
+                <div class="portada-columna hombre-col">
+                  <div class="col-header-tag hombre">
+                    <span>👨 Portada Hombre</span>
+                  </div>
+
+                  <div class="subcat-preview-box">
+                    @if (subcatImgService.obtenerImagenHombre(subcat); as imgH) {
+                      <img [src]="imgH" [alt]="subcat + ' Hombre'" class="subcat-img-preview">
+                    } @else {
+                      <div class="subcat-empty-preview">
+                        <span>📷 Sin foto masculina</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="subcat-actions">
+                    <label class="btn-subir-subcat-file hombre-btn">
+                      @if (subcatImgService.obtenerImagenHombre(subcat)) {
+                        🔄 Actualizar (Hombre)
+                      } @else {
+                        📷 Subir Foto Hombre
+                      }
+                      <input type="file" accept="image/*" (change)="onSubcatImagenSeleccionada(subcat, 'HOMBRE', $event)" style="display: none;">
+                    </label>
+
+                    @if (subcatImgService.obtenerImagenHombre(subcat)) {
+                      <button type="button" class="btn-eliminar-subcat" (click)="confirmarEliminarSubcat(subcat, 'HOMBRE')">
+                        🗑️ Eliminar
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- COLUMNA MUJER 👩 -->
+              @if (filtroGeneroPortadas() === 'TODOS' || filtroGeneroPortadas() === 'MUJER') {
+                <div class="portada-columna mujer-col">
+                  <div class="col-header-tag mujer">
+                    <span>👩 Portada Mujer</span>
+                  </div>
+
+                  <div class="subcat-preview-box">
+                    @if (subcatImgService.obtenerImagenMujer(subcat); as imgM) {
+                      <img [src]="imgM" [alt]="subcat + ' Mujer'" class="subcat-img-preview">
+                    } @else {
+                      <div class="subcat-empty-preview">
+                        <span>📷 Sin foto femenina</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="subcat-actions">
+                    <label class="btn-subir-subcat-file mujer-btn">
+                      @if (subcatImgService.obtenerImagenMujer(subcat)) {
+                        🔄 Actualizar (Mujer)
+                      } @else {
+                        📷 Subir Foto Mujer
+                      }
+                      <input type="file" accept="image/*" (change)="onSubcatImagenSeleccionada(subcat, 'MUJER', $event)" style="display: none;">
+                    </label>
+
+                    @if (subcatImgService.obtenerImagenMujer(subcat)) {
+                      <button type="button" class="btn-eliminar-subcat" (click)="confirmarEliminarSubcat(subcat, 'MUJER')">
+                        🗑️ Eliminar
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- MODAL CREACIÓN DE EJERCICIO -->
+  @if (mostrarFormulario()) {
+    <div class="modal-overlay" (click)="cerrarCrear()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="btn-cerrar-modal" (click)="cerrarCrear()">&times;</button>
+        
+        <h2>Agregar Nuevo Ejercicio</h2>
+
+        <form [formGroup]="ejercicioForm" (ngSubmit)="guardarEjercicio()" class="formulario-ejercicio">
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="nombre">Nombre del Ejercicio</label>
+            <input type="text" id="nombre" formControlName="nombre" placeholder="Ej. Press Banca Plano">
+          </div>
+
+          <!-- Grupo Muscular -->
+          <div class="form-group">
+            <label for="grupoMuscular">Grupo Muscular</label>
+            <select id="grupoMuscular" formControlName="grupoMuscular">
+              @for (grupo of gruposMusculares; track $index) {
+                <option [value]="grupo">{{ grupo }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Descripción -->
+          <div class="form-group">
+            <label for="descripcion">Instrucciones de Ejecución</label>
+            <textarea id="descripcion" formControlName="descripcion" rows="4" placeholder="Describe los pasos para realizar el ejercicio correctamente..."></textarea>
+          </div>
+
+          <!-- Imagen URL y Carga de Archivo -->
+          <div class="form-group">
+            <label for="imagenUrl">Imagen de Portada (Foto 1)</label>
+            <div class="form-file-and-url">
+              <label class="btn-subir-archivo-form">
+                📁 Seleccionar de mi equipo
+                <input type="file" accept="image/*" (change)="onCrearImagenSeleccionada($event)" style="display: none;">
+              </label>
+              <input type="text" id="imagenUrl" formControlName="imagenUrl" placeholder="o https://ejemplo.com/imagen.jpg">
+            </div>
+            @if (ejercicioForm.value.imagenUrl) {
+              <div class="form-preview-mini">
+                <img [src]="ejercicioForm.value.imagenUrl" alt="Vista previa imagen">
+              </div>
+            }
+          </div>
+
+          <!-- Video URL y Carga de Archivo -->
+          <div class="form-group">
+            <label for="videoUrl">Video Guía Demostrativo (Opcional)</label>
+            <div class="form-file-and-url">
+              <label class="btn-subir-archivo-form">
+                🎥 Seleccionar de mi equipo
+                <input type="file" accept="video/*" (change)="onCrearVideoSeleccionado($event)" style="display: none;">
+              </label>
+              <input type="text" id="videoUrl" formControlName="videoUrl" placeholder="o https://ejemplo.com/video.mp4">
+            </div>
+            @if (ejercicioForm.value.videoUrl) {
+              <div class="form-preview-mini">
+                <video [src]="ejercicioForm.value.videoUrl" controls class="video-preview"></video>
+              </div>
+            }
+          </div>
+
+          <div class="modal-acciones">
+            <button type="button" class="btn-cancelar" (click)="cerrarCrear()">Cancelar</button>
+            <button type="submit" class="btn-guardar" [disabled]="ejercicioForm.invalid">
+              Guardar Ejercicio
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL GESTOR MULTIMEDIA DUAL (ADMIN) -->
+  @if (mostrarModalMedia() && ejercicioSeleccionado(); as ej) {
+    <div class="modal-overlay admin-media-overlay" (click)="cerrarGestorMedia()">
+      <div class="modal-content admin-media-content" (click)="$event.stopPropagation()">
+        <button class="btn-cerrar-modal" (click)="cerrarGestorMedia()">&times;</button>
+        
+        <div class="admin-modal-header">
+          <span class="admin-badge">ADMINISTRADOR MULTIMEDIA</span>
+          <h2>⚙️ Guía Multimedia de "{{ ej.nombre }}"</h2>
+          <p class="sub-txt">Configura las fotos y video demostrativo para versión masculina y femenina.</p>
+
+          <!-- INTERRUPTOR DE PESTAÑAS HOMBRE / MUJER -->
+          <div class="selector-genero-modal-media">
+            <button type="button" 
+                    class="btn-gen-modal hombre" 
+                    [class.activo]="adminGeneroMedia() === 'HOMBRE'"
+                    (click)="cambiarGeneroMedia('HOMBRE')">
+              👨 Versión Masculina (Hombre)
+            </button>
+            <button type="button" 
+                    class="btn-gen-modal mujer" 
+                    [class.activo]="adminGeneroMedia() === 'MUJER'"
+                    (click)="cambiarGeneroMedia('MUJER')">
+              👩 Versión Femenina (Mujer)
+            </button>
+          </div>
+        </div>
+
+        @if (adminGeneroMedia() === 'HOMBRE') {
+          <!-- GRID FOTOS HOMBRE -->
+          <div class="admin-media-grid">
+            <!-- Slot Foto 1 -->
+            <div class="media-slot-card">
+              <div class="slot-header">
+                <span class="slot-title">📷 Foto 1 (Vista Inicial ♂)</span>
+                <span class="plan-tag gratis">GRATIS</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreFoto1()) {
+                  <img [src]="adminHombreFoto1()" alt="Foto 1 Hombre">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto1')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreFoto1()" (input)="adminHombreFoto1.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 2 -->
+            <div class="media-slot-card">
+              <div class="slot-header">
+                <span class="slot-title">📷 Foto 2 (Plano Escapular ♂)</span>
+                <span class="plan-tag gratis">GRATIS</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreFoto2()) {
+                  <img [src]="adminHombreFoto2()" alt="Foto 2 Hombre">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto2')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreFoto2()" (input)="adminHombreFoto2.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 3 -->
+            <div class="media-slot-card">
+              <div class="slot-header">
+                <span class="slot-title">📷 Foto 3 (Depresión Hombros ♂)</span>
+                <span class="plan-tag gratis">GRATIS</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreFoto3()) {
+                  <img [src]="adminHombreFoto3()" alt="Foto 3 Hombre">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto3')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreFoto3()" (input)="adminHombreFoto3.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 4 -->
+            <div class="media-slot-card pro">
+              <div class="slot-header">
+                <span class="slot-title">🔒 Foto 4 (Vista POV ♂)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreFoto4()) {
+                  <img [src]="adminHombreFoto4()" alt="Foto 4 Hombre">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto4')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreFoto4()" (input)="adminHombreFoto4.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 5 -->
+            <div class="media-slot-card pro">
+              <div class="slot-header">
+                <span class="slot-title">🔒 Foto 5 (Vista Cenital ♂)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreFoto5()) {
+                  <img [src]="adminHombreFoto5()" alt="Foto 5 Hombre">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto5')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreFoto5()" (input)="adminHombreFoto5.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 6 -->
+            <div class="media-slot-card pro">
+              <div class="slot-header">
+                <span class="slot-title">🔒 Foto 6 (Variante / Detalle ♂)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreFoto6()) {
+                  <img [src]="adminHombreFoto6()" alt="Foto 6 Hombre">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto6')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreFoto6()" (input)="adminHombreFoto6.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Video -->
+            <div class="media-slot-card pro video-slot">
+              <div class="slot-header">
+                <span class="slot-title">🎥 Video Guía (Hombre)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminHombreVideo()) {
+                  <video [src]="adminHombreVideo()" controls class="video-preview-mini"></video>
+                } @else {
+                  <div class="empty-preview">Sin video</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo hombre-btn">
+                  🎥 Seleccionar video MP4
+                  <input type="file" accept="video/*" (change)="onArchivoSeleccionado($event, 'video')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminHombreVideo()" (input)="adminHombreVideo.set($any($event.target).value)" placeholder="o URL de video..." class="input-url-slot">
+              </div>
+            </div>
+          </div>
+        } @else {
+          <!-- GRID FOTOS MUJER -->
+          <div class="admin-media-grid mujer-grid">
+            <!-- Slot Foto 1 -->
+            <div class="media-slot-card">
+              <div class="slot-header">
+                <span class="slot-title">📷 Foto 1 (Vista Inicial ♀)</span>
+                <span class="plan-tag gratis">GRATIS</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerFoto1()) {
+                  <img [src]="adminMujerFoto1()" alt="Foto 1 Mujer">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto1')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerFoto1()" (input)="adminMujerFoto1.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 2 -->
+            <div class="media-slot-card">
+              <div class="slot-header">
+                <span class="slot-title">📷 Foto 2 (Plano Escapular ♀)</span>
+                <span class="plan-tag gratis">GRATIS</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerFoto2()) {
+                  <img [src]="adminMujerFoto2()" alt="Foto 2 Mujer">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto2')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerFoto2()" (input)="adminMujerFoto2.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 3 -->
+            <div class="media-slot-card">
+              <div class="slot-header">
+                <span class="slot-title">📷 Foto 3 (Depresión Hombros ♀)</span>
+                <span class="plan-tag gratis">GRATIS</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerFoto3()) {
+                  <img [src]="adminMujerFoto3()" alt="Foto 3 Mujer">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto3')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerFoto3()" (input)="adminMujerFoto3.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 4 -->
+            <div class="media-slot-card pro">
+              <div class="slot-header">
+                <span class="slot-title">🔒 Foto 4 (Vista POV ♀)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerFoto4()) {
+                  <img [src]="adminMujerFoto4()" alt="Foto 4 Mujer">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto4')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerFoto4()" (input)="adminMujerFoto4.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 5 -->
+            <div class="media-slot-card pro">
+              <div class="slot-header">
+                <span class="slot-title">🔒 Foto 5 (Vista Cenital ♀)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerFoto5()) {
+                  <img [src]="adminMujerFoto5()" alt="Foto 5 Mujer">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto5')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerFoto5()" (input)="adminMujerFoto5.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Foto 6 -->
+            <div class="media-slot-card pro">
+              <div class="slot-header">
+                <span class="slot-title">🔒 Foto 6 (Variante / Detalle ♀)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerFoto6()) {
+                  <img [src]="adminMujerFoto6()" alt="Foto 6 Mujer">
+                } @else {
+                  <div class="empty-preview">Sin foto</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  📁 Seleccionar foto
+                  <input type="file" accept="image/*" (change)="onArchivoSeleccionado($event, 'foto6')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerFoto6()" (input)="adminMujerFoto6.set($any($event.target).value)" placeholder="o pegar URL..." class="input-url-slot">
+              </div>
+            </div>
+
+            <!-- Slot Video -->
+            <div class="media-slot-card pro video-slot">
+              <div class="slot-header">
+                <span class="slot-title">🎥 Video Guía (Mujer)</span>
+                <span class="plan-tag pro">PRO / PREMIUM</span>
+              </div>
+              <div class="slot-preview">
+                @if (adminMujerVideo()) {
+                  <video [src]="adminMujerVideo()" controls class="video-preview-mini"></video>
+                } @else {
+                  <div class="empty-preview">Sin video</div>
+                }
+              </div>
+              <div class="slot-actions">
+                <label class="btn-subir-archivo mujer-btn">
+                  🎥 Seleccionar video MP4
+                  <input type="file" accept="video/*" (change)="onArchivoSeleccionado($event, 'video')" style="display: none;">
+                </label>
+                <input type="text" [value]="adminMujerVideo()" (input)="adminMujerVideo.set($any($event.target).value)" placeholder="o URL de video..." class="input-url-slot">
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-cancelar" (click)="cerrarGestorMedia()">Cancelar</button>
+          <button type="button" class="btn-guardar-admin-media" [disabled]="guardandoMedia()" (click)="guardarMedia()">
+            @if (guardandoMedia()) {
+              <span>⏳ Guardando...</span>
+            } @else {
+              <span>💾 Guardar Cambios (Hombre y Mujer)</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ======= MODAL: EDITOR DE RECORTE DE IMAGEN ======= -->
+  @if (mostrarEditorRecorte()) {
+    <div class="modal-overlay" (click)="cerrarEditorRecorte()">
+      <div class="modal-editor-recorte" (click)="$event.stopPropagation()">
+        <div class="editor-header" [class.mujer-recorte]="editorTargetGenero() === 'MUJER'">
+          <h2>✂️ Ajustar y Recortar Foto de Portada ({{ editorTargetGenero() === 'MUJER' ? 'Mujer 👩' : 'Hombre 👨' }})</h2>
+          <p class="editor-subtitle">
+            Para: <strong>{{ editorTargetId() }}</strong>
+          </p>
+          <button class="btn-cerrar-editor" (click)="cerrarEditorRecorte()">✕</button>
+        </div>
+
+        <div class="editor-body">
+          <!-- Instrucciones -->
+          <div class="editor-instrucciones">
+            <span>🖱️ Arrastra la imagen para acomodarla</span>
+            <span>🔍 Ajusta el zoom con la barra</span>
+            <span>📐 El cuadro muestra exactamente la portada que se guardará</span>
+          </div>
+
+          <!-- Canvas del editor -->
+          <div class="editor-canvas-wrapper">
+            <canvas id="cropperCanvas" width="480" height="480" style="cursor: grab;"></canvas>
+          </div>
+
+          <!-- Controles de zoom -->
+          <div class="editor-controles">
+            <label class="control-label">
+              <span>🔍 Zoom: {{ (editorZoom() * 100).toFixed(0) }}%</span>
+              <input type="range" min="0.2" max="5" step="0.05"
+                     [value]="editorZoom()"
+                     (input)="onEditorZoomChange(+$any($event.target).value)"
+                     class="zoom-slider">
+            </label>
+          </div>
+        </div>
+
+        <div class="editor-footer">
+          <button type="button" class="btn-cancelar" (click)="cerrarEditorRecorte()">
+            ✖️ Cancelar
+          </button>
+          <button type="button" 
+                  class="btn-aplicar-recorte" 
+                  [class.mujer-btn]="editorTargetGenero() === 'MUJER'"
+                  (click)="aplicarRecorte()">
+            💾 Guardar Imagen Recortada ({{ editorTargetGenero() }})
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

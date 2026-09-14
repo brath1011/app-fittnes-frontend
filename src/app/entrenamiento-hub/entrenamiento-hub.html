@@ -1,0 +1,658 @@
+<div class="entrenamiento-hub-container">
+
+  <!-- ==================== BANNER ACTIVO (SI HAY SESIÓN EN CURSO) ==================== -->
+  @if (stateService.hayEntrenamientoActivo() && stateService.rutinaActiva(); as activa) {
+    <div class="banner-sesion-activa animate-fade-in">
+      <div class="activa-info">
+        <span class="pulsing-dot"></span>
+        <div>
+          <span class="sub-label">Sesión de entrenamiento en progreso</span>
+          <h3>{{ activa.nombre }}</h3>
+        </div>
+      </div>
+      <div class="activa-acciones">
+        <a [routerLink]="['/entrenamiento', activa.id]" class="btn-continuar-flotante">
+          ▶️ Continuar Entrenamiento
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== HEADER PRINCIPAL ==================== -->
+  <div class="hub-header">
+    <div class="header-texto">
+      <div class="badge-tag">Módulo de Entrenamiento Inteligente</div>
+      <h1>{{ acc.t('entrenamiento.titulo') }}</h1>
+      <p>{{ acc.t('entrenamiento.subtitulo') }}</p>
+    </div>
+
+    <!-- Menú / Barra de Acciones Superior -->
+    <div class="header-acciones">
+      <button type="button" class="btn-crear-rutina-hero btn-touch-accessible" (click)="abrirModalCrear()">
+        <span class="plus-icon">+</span>
+        <span>{{ acc.t('entrenamiento.crearNueva') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== HERO: INICIAR ENTRENAMIENTO DEL DÍA ==================== -->
+  <div class="hero-dia-entrenamiento-card animate-fade-in">
+    <div class="hero-dia-top">
+      <div class="dia-identificador">
+        <span class="badge-hoy">
+          HOY ES {{ obtenerNombreDiaEspanol(diaHoy()).toUpperCase() }}
+        </span>
+        <h2>Entrenamiento de {{ obtenerNombreDiaEspanol(diaSeleccionadoHub()) }}</h2>
+        @if (rutinaActivaHub(); as r) {
+          <p class="rutina-asignada-txt">
+            Rutina asignada: <strong>{{ r.nombre }}</strong>
+            @if (rutinas().length > 1) {
+              <span class="rutina-selector-inline">
+                • Cambiar rutina:
+                <select [ngModel]="rutinaSeleccionadaHubId() || r.id" (ngModelChange)="rutinaSeleccionadaHubId.set($event)" class="select-mini-rutina">
+                  @for (opt of rutinas(); track opt.id) {
+                    <option [value]="opt.id">{{ opt.nombre }}</option>
+                  }
+                </select>
+              </span>
+            }
+          </p>
+        } @else {
+          <p class="rutina-asignada-txt">Crea una rutina para comenzar a entrenar de forma estructurada.</p>
+        }
+      </div>
+
+      <!-- Selector de Días Semanales (Lunes a Domingo) -->
+      <div class="dias-semana-tabs-bar">
+        @for (dia of diasSemanaList; track dia) {
+          @let esHoy = dia === diaHoy();
+          @let esSeleccionado = dia === diaSeleccionadoHub();
+          <button type="button" 
+                  class="btn-dia-tab" 
+                  [class.activo]="esSeleccionado"
+                  [class.es-hoy]="esHoy"
+                  (click)="seleccionarDiaHub(dia)">
+            <span class="dia-nom-corto">{{ dia.substring(0, 3) }}</span>
+            @if (esHoy) {
+              <span class="punto-hoy" title="Hoy"></span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Contenido del Día Seleccionado -->
+    @if (rutinaActivaHub(); as rutina) {
+      @let ejs = ejerciciosDiaSeleccionado();
+      @let stats = resumenDiaSeleccionado();
+      @let esDiaActivo = esDiaEntrenamientoActivo();
+
+      <div class="hero-dia-body">
+        @if (esDiaActivo && ejs.length > 0) {
+          <div class="resumen-metrix-grid">
+            <div class="metrix-item">
+              <span class="m-val">{{ stats.cantidadEjercicios }}</span>
+              <span class="m-lbl">Ejercicios</span>
+            </div>
+            <div class="metrix-item">
+              <span class="m-val">{{ stats.totalSeries }}</span>
+              <span class="m-lbl">Series Totales</span>
+            </div>
+            <div class="metrix-item">
+              <span class="m-val">{{ stats.totalReps }}</span>
+              <span class="m-lbl">Reps Estimadas</span>
+            </div>
+            <div class="metrix-item">
+              <span class="m-val">~{{ stats.tiempoEstimadoMin }} min</span>
+              <span class="m-lbl">Duración Aprox.</span>
+            </div>
+          </div>
+
+          <!-- Preview de ejercicios del día -->
+          <div class="hero-ejercicios-preview">
+            <span class="preview-titulo">Ejercicios para {{ obtenerNombreDiaEspanol(diaSeleccionadoHub()) }}:</span>
+            <div class="chips-ejercicios-dia">
+              @for (ej of ejs; track (ej.ejercicio.id + '_' + $index)) {
+                <span class="chip-ej-preview">
+                  <strong>{{ ej.ejercicio.nombre }}</strong> ({{ ej.series }}x{{ ej.repeticiones }})
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- BOTÓN HERO INICIAR ENTRENAMIENTO -->
+          <div class="hero-cta-box">
+            <button type="button" 
+                    class="btn-iniciar-dia-hero btn-touch-accessible"
+                    (click)="iniciarEntrenamientoDia(rutina.id, diaSeleccionadoHub())">
+              <span class="play-icon">▶</span>
+              <span class="txt-principal">Iniciar Entrenamiento de {{ obtenerNombreDiaEspanol(diaSeleccionadoHub()) }}</span>
+              <span class="txt-secundario">Comenzar registro en tiempo real con temporizadores</span>
+            </button>
+          </div>
+        } @else if (esDiaActivo && ejs.length === 0) {
+          <div class="hero-sin-ejercicios">
+            <span class="emoji-aviso">📋</span>
+            <h4>Día activo sin ejercicios específicos configurados</h4>
+            <p>Puedes iniciar la rutina completa o editarla para asignar ejercicios a este día.</p>
+            <button type="button" 
+                    class="btn-iniciar-dia-hero btn-touch-accessible"
+                    (click)="iniciarEntrenamientoDia(rutina.id, diaSeleccionadoHub())">
+              <span class="play-icon">▶</span>
+              <span class="txt-principal">Iniciar Entrenamiento de {{ obtenerNombreDiaEspanol(diaSeleccionadoHub()) }}</span>
+            </button>
+          </div>
+        } @else {
+          <!-- Día de Descanso -->
+          <div class="hero-descanso-panel">
+            <div class="descanso-icon">🧘‍♂️</div>
+            <div class="descanso-txt">
+              <h4>Día de Descanso & Recuperación</h4>
+              <p>No tienes programado entrenamiento para el <strong>{{ obtenerNombreDiaEspanol(diaSeleccionadoHub()) }}</strong> en esta rutina. El descanso es fundamental para la hipertrofia y adaptación neuromuscular.</p>
+            </div>
+            <div class="descanso-acciones">
+              <button type="button" 
+                      class="btn-entrenar-de-todos-modos"
+                      (click)="iniciarEntrenamientoDia(rutina.id, diaSeleccionadoHub())">
+                ⚡ Entrenar de todos modos
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="hero-sin-rutina-aviso">
+        <p>Aún no tienes rutinas guardadas. Crea tu primera rutina para habilitar el inicio inteligente por día.</p>
+        <button type="button" class="btn-crear-primera" (click)="abrirModalCrear()">+ Crear Rutina</button>
+      </div>
+    }
+  </div>
+
+  <!-- ==================== ANÁLISIS CIENTÍFICO DE VOLUMEN SEMANAL ==================== -->
+  @if (analisisVolumenSemanal().length > 0) {
+    <div class="seccion-analisis-cientifico animate-fade-in">
+      <div class="analisis-header">
+        <div class="analisis-tit-col">
+          <div class="badge-ciencia">🔬 Comprobado Científicamente</div>
+          <h2>Análisis de Volumen Semanal por Grupo Muscular</h2>
+          <p class="analisis-sub">
+            La evidencia científica en hipertrofia demuestra que el rango óptimo es de <strong>12 a 20 series semanales efectivas</strong> por grupo muscular. Superar los límites de recuperación genera sobreentrenamiento y fatiga del SNC.
+          </p>
+        </div>
+      </div>
+
+      <div class="analisis-musculos-grid">
+        @for (item of analisisVolumenSemanal(); track item.grupoMuscular) {
+          <div class="musculo-analisis-card" [ngClass]="'estado-' + item.estado.toLowerCase()">
+            <div class="musculo-card-header">
+              <div class="musculo-nombre-box">
+                <span class="musculo-icon">{{ item.icono }}</span>
+                <div>
+                  <h4 class="musculo-titulo">{{ item.grupoMuscular }}</h4>
+                  <span class="ejercicios-count-txt">({{ item.grupoPrincipal }}) • {{ item.ejerciciosCount }} ejercicio(s) involucrado(s)</span>
+                </div>
+              </div>
+
+              <!-- Badge de Estado Científico -->
+              <div class="badge-estado-volumen" [ngClass]="item.estado.toLowerCase()">
+                @if (item.estado === 'OPTIMO') {
+                  <span>🟢 Rango Óptimo Hipertrofia</span>
+                } @else if (item.estado === 'EXCESIVO') {
+                  <span>🔴 Volumen Excesivo (Reducir)</span>
+                } @else {
+                  <span>🟡 Volumen Mantenimiento</span>
+                }
+              </div>
+            </div>
+
+            <!-- Series y Barra Visual -->
+            <div class="volumen-series-data">
+              <div class="series-counter-row">
+                <span class="series-totales"><strong>{{ item.seriesTotales }}</strong> series / sem</span>
+                <span class="rango-optimo-ref">Meta óptima: {{ item.minOptimo }} - {{ item.maxOptimo }} series</span>
+              </div>
+
+              <div class="barra-volumen-progreso">
+                <div class="barra-relleno" 
+                     [style.width.%]="item.porcentajeBarra"
+                     [ngClass]="item.estado.toLowerCase()"></div>
+                <!-- Marcador de límite óptimo -->
+                <div class="marcador-optimo" title="Rango óptimo (12-20 series)"></div>
+              </div>
+            </div>
+
+            <!-- Mensaje Científico Guiado -->
+            <p class="mensaje-cientifico-txt">{{ item.mensaje }}</p>
+
+            <!-- Ejercicios que contribuyen al grupo muscular -->
+            @if (item.ejerciciosNombres.length > 0) {
+              <div class="ejercicios-contribuyentes-box">
+                <span class="lbl-contribuyentes">Ejercicios incluidos:</span>
+                <div class="chips-contribuyentes-list">
+                  @for (nom of item.ejerciciosNombres; track nom) {
+                    <span class="chip-contribuyente">{{ nom }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ==================== STATS RESUMEN ==================== -->
+  <div class="hub-stats-bar">
+    <div class="stat-pill">
+      <span class="stat-val">{{ rutinas().length }}</span>
+      <span class="stat-lbl">Rutinas Guardadas</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-val">{{ ejerciciosDisponibles().length }}</span>
+      <span class="stat-lbl">Ejercicios en Catálogo</span>
+    </div>
+    <div class="stat-pill enlace-planificador">
+      <a routerLink="/rutinas" class="btn-link-planificador">
+        📅 Ver Calendario Semanal &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- ==================== LISTADO DE RUTINAS CREADAS ==================== -->
+  <div class="seccion-rutinas-creadas">
+    <div class="seccion-titulo-row">
+      <h2>{{ acc.t('entrenamiento.misRutinas') }}</h2>
+      <span class="contador-rutinas">({{ rutinas().length }})</span>
+    </div>
+
+    @if (cargando()) {
+      <div class="cargando-hub">
+        <div class="spinner-moderno"></div>
+        <p>Cargando tus rutinas de entrenamiento...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-hub">
+        <span class="icon">⚠️</span>
+        <p>No se pudieron cargar tus rutinas. Intenta recargar la página.</p>
+        <button type="button" class="btn-recargar" (click)="cargarDatos()">Reintentar</button>
+      </div>
+    } @else if (rutinas().length === 0) {
+      <div class="sin-rutinas-hub animate-fade-in">
+        <div class="sin-rutinas-icon">🏋️‍♂️</div>
+        <h3>No tienes rutinas creadas aún</h3>
+        <p>Diseña tu primer entrenamiento personalizado paso a paso eligiendo días, ejercicios y series.</p>
+        <button type="button" class="btn-crear-primera btn-touch-accessible" (click)="abrirModalCrear()">
+          + Crear Mi Primera Rutina
+        </button>
+      </div>
+    } @else {
+      <div class="rutinas-hub-grid">
+        @for (rutina of rutinas(); track rutina.id) {
+          @let esActiva = stateService.hayEntrenamientoActivo() && stateService.rutinaActiva()?.id === rutina.id;
+          <div class="rutina-hub-card animate-fade-in" [class.en-progreso]="esActiva">
+            
+            <!-- Encabezado de la Tarjeta -->
+            <div class="card-top">
+              <span class="badge-dificultad" [ngClass]="rutina.nivelDificultad ? rutina.nivelDificultad.toLowerCase() : 'principiante'">
+                {{ rutina.nivelDificultad || 'PRINCIPIANTE' }}
+              </span>
+              
+              <button type="button" 
+                      class="btn-eliminar-card" 
+                      (click)="eliminarRutina(rutina.id)" 
+                      title="Eliminar Rutina"
+                      aria-label="Eliminar Rutina">
+                &times;
+              </button>
+            </div>
+
+            <!-- Título y Descripción -->
+            <div class="card-info">
+              <h3 class="rutina-titulo">{{ rutina.nombre }}</h3>
+              <p class="rutina-desc">{{ rutina.descripcion || 'Entrenamiento personalizado.' }}</p>
+
+              <!-- Días Asignados -->
+              @if (rutina.diasSemana) {
+                <div class="dias-pills-list">
+                  @for (d of rutina.diasSemana.split(','); track $index) {
+                    <span class="dia-pill">{{ d.trim() }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Resumen de Ejercicios -->
+            <div class="card-ejercicios-box">
+              <div class="ejercicios-header-mini">
+                <span class="lbl">Ejercicios incluidos:</span>
+                <span class="cant-badge">{{ rutina.ejercicios?.length || 0 }}</span>
+              </div>
+
+              @if (rutina.ejercicios && rutina.ejercicios.length > 0) {
+                <ul class="ejercicios-preview-list">
+                  @for (re of rutina.ejercicios; track (re.ejercicio.id + '_' + $index); let idx = $index) {
+                    <li class="ejercicio-item-mini">
+                      <span class="ej-idx">{{ idx + 1 }}</span>
+                      <span class="ej-nombre">{{ re.ejercicio.nombre }}</span>
+                      <span class="ej-meta">
+                        {{ re.series }}x{{ re.repeticiones }}
+                        @if (re.pesoKg) {
+                          <b>({{ re.pesoKg }}kg)</b>
+                        }
+                        @if (re.esUnilateral) {
+                          <span class="unil-tag">Unilat.</span>
+                        }
+                      </span>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="sin-ej-aviso">Sin ejercicios registrados.</p>
+              }
+            </div>
+
+            <!-- Botón Principal: Empezar Rutina -->
+            <div class="card-footer-acciones">
+              <button type="button" 
+                      class="btn-empezar-rutina btn-touch-accessible" 
+                      [class.btn-activo]="esActiva"
+                      (click)="empezarRutina(rutina.id)">
+                @if (esActiva) {
+                  <span>⚡ {{ acc.t('entrenamiento.continuarRutina') }}</span>
+                } @else {
+                  <span>🚀 {{ acc.t('entrenamiento.empezarRutina') }}</span>
+                }
+              </button>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ==================== MODAL DE CREACIÓN EN PASOS SEPARADOS ==================== -->
+  @if (mostrarModalCrear()) {
+    <div class="modal-overlay-crear" (click)="cerrarModalCrear()">
+      <div class="modal-crear-content animate-fade-in" (click)="$event.stopPropagation()">
+        
+        <!-- Header del Modal con Wizard Steps -->
+        <div class="modal-crear-header">
+          <div class="wizard-stepper">
+            <div class="step-item" [class.activo]="pasoCreacion() === 1" [class.completado]="pasoCreacion() > 1">
+              <span class="step-num">1</span>
+              <span class="step-txt">Datos & Días</span>
+            </div>
+            <div class="step-line" [class.activa]="pasoCreacion() >= 2"></div>
+            <div class="step-item" [class.activo]="pasoCreacion() === 2" [class.completado]="pasoCreacion() > 2">
+              <span class="step-num">2</span>
+              <span class="step-txt">Buscar Ejercicios</span>
+            </div>
+            <div class="step-line" [class.activa]="pasoCreacion() >= 3"></div>
+            <div class="step-item" [class.activo]="pasoCreacion() === 3">
+              <span class="step-num">3</span>
+              <span class="step-txt">Series & Cargas</span>
+            </div>
+          </div>
+          <button type="button" class="btn-cerrar-modal-x" (click)="cerrarModalCrear()">&times;</button>
+        </div>
+
+        <form [formGroup]="rutinaForm" class="form-crear-rutina">
+          
+          <!-- ==================== PASO 1: DATOS GENERALES Y DÍAS ==================== -->
+          @if (pasoCreacion() === 1) {
+            <div class="paso-wizard-container animate-fade-in">
+              <div class="paso-header">
+                <h3>Paso 1: Nombra tu Rutina y Selecciona los Días</h3>
+                <p>Define el nombre de tu entrenamiento y los días de la semana en que piensas realizarlo.</p>
+              </div>
+
+              <!-- Nombre y Nivel -->
+              <div class="form-grid-dos">
+                <div class="form-grupo">
+                  <label for="hub_nombre">Nombre de la Rutina *</label>
+                  <input type="text" 
+                         id="hub_nombre" 
+                         formControlName="nombre" 
+                         placeholder="Ej. Pecho & Tríceps Hipertrofia"
+                         class="input-moderno">
+                  @if (rutinaForm.get('nombre')?.invalid && rutinaForm.get('nombre')?.touched) {
+                    <span class="error-msg">El nombre es requerido (mínimo 3 caracteres).</span>
+                  }
+                </div>
+
+                <div class="form-grupo">
+                  <label for="hub_dificultad">Nivel de Dificultad</label>
+                  <select id="hub_dificultad" formControlName="nivelDificultad" class="select-moderno">
+                    <option value="PRINCIPIANTE">Principiante</option>
+                    <option value="INTERMEDIO">Intermedio</option>
+                    <option value="AVANZADO">Avanzado</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Días de la semana en que piensas entrenar -->
+              <div class="form-grupo seccion-dias">
+                <label>¿Qué días de la semana piensas entrenar esta rutina? *</label>
+                <p class="sub-label-dias">Selecciona los días asignados para este entrenamiento:</p>
+                
+                <div class="dias-selector-grid">
+                  @for (dia of diasSemanaList; track dia) {
+                    <button type="button" 
+                            class="btn-dia-chip" 
+                            [class.activo]="diasSeleccionadosParaRutina().includes(dia)"
+                            (click)="toggleDiaRutina(dia)">
+                      <span class="check-dot"></span>
+                      {{ dia }}
+                    </button>
+                  }
+                </div>
+                @if (diasSeleccionadosParaRutina().length === 0) {
+                  <span class="error-msg">Selecciona al menos 1 día de entrenamiento.</span>
+                }
+              </div>
+
+              <!-- Descripción u Objetivos -->
+              <div class="form-grupo">
+                <label for="hub_desc">Descripción u Objetivos (Opcional)</label>
+                <input type="text" 
+                       id="hub_desc" 
+                       formControlName="descripcion" 
+                       placeholder="Ej. Enfoque en sobrecarga progresiva y cadencia controlada."
+                       class="input-moderno">
+              </div>
+
+              <div class="paso-acciones">
+                <button type="button" 
+                        class="btn-siguiente-paso btn-touch-accessible" 
+                        [disabled]="rutinaForm.get('nombre')?.invalid || diasSeleccionadosParaRutina().length === 0"
+                        (click)="irPaso(2)">
+                  Siguiente: Buscar Ejercicios &rarr;
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- ==================== PASO 2: BÚSQUEDA Y SELECCIÓN DE EJERCICIOS ==================== -->
+          @if (pasoCreacion() === 2) {
+            <div class="paso-wizard-container animate-fade-in">
+              <div class="paso-header">
+                <h3>Paso 2: Búsqueda y Selección de Ejercicios</h3>
+                <p>Busca por nombre o filtra por grupo muscular para añadir los ejercicios que harás.</p>
+              </div>
+
+              <div class="selector-ejercicios-seccion">
+                
+                <!-- Buscador de Ejercicios por Nombre -->
+                <div class="buscador-modal-box">
+                  <span class="lupa-icon">🔍</span>
+                  <input type="text" 
+                         placeholder="Buscar ejercicio por nombre, músculo o subcategoría..." 
+                         [value]="buscarEjercicioTermino()"
+                         (input)="buscarEjercicioTermino.set($any($event.target).value)"
+                         class="input-buscador-modal">
+                </div>
+
+                <!-- Tabs de Grupos Musculares -->
+                <div class="grupos-scroll-tabs">
+                  @for (grupo of gruposMusculares; track grupo) {
+                    <button type="button" 
+                            class="btn-tab-grupo" 
+                            [class.activo]="grupoSeleccionado() === grupo"
+                            (click)="grupoSeleccionado.set(grupo)">
+                      {{ grupo }}
+                    </button>
+                  }
+                </div>
+
+                <!-- Lista de Ejercicios Disponibles -->
+                <div class="ejercicios-disponibles-scroll">
+                  @for (ej of ejerciciosFiltrados(); track ej.id) {
+                    @let yaAgregado = ejerciciosAgregados().some(ea => ea.ejercicio.id === ej.id);
+                    <div class="ejercicio-disponible-fila" [class.agregado]="yaAgregado">
+                      <div class="ej-info">
+                        <strong class="nombre">{{ ej.nombre }}</strong>
+                        <span class="meta-sub">{{ ej.grupoMuscular }} • {{ ej.subcategoria || 'General' }}</span>
+                      </div>
+                      <button type="button" 
+                              class="btn-add-ej" 
+                              [class.btn-ya-anadido]="yaAgregado"
+                              (click)="agregarEjercicio(ej)">
+                        {{ yaAgregado ? '✓ Añadido' : '+ Añadir' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                <!-- Chips de Ejercicios Seleccionados Actualmente -->
+                <div class="resumen-seleccionados-box">
+                  <div class="resumen-seleccionados-header">
+                    <strong>Ejercicios Seleccionados: ({{ ejerciciosAgregados().length }})</strong>
+                  </div>
+                  @if (ejerciciosAgregados().length === 0) {
+                    <p class="aviso-sin-seleccion">Haz clic en "+ Añadir" en los ejercicios que quieras incluir.</p>
+                  } @else {
+                    <div class="chips-seleccionados-grid">
+                      @for (ea of ejerciciosAgregados(); track (ea.ejercicio.id + '_' + $index); let idx = $index) {
+                        <span class="chip-ej-sel">
+                          {{ ea.ejercicio.nombre }}
+                          <button type="button" class="btn-quitar-chip" (click)="quitarEjercicio(idx)">&times;</button>
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+
+              </div>
+
+              <div class="paso-acciones doble">
+                <button type="button" class="btn-atras-paso" (click)="irPaso(1)">
+                  &larr; Volver a Datos
+                </button>
+                <button type="button" 
+                        class="btn-siguiente-paso btn-touch-accessible" 
+                        [disabled]="ejerciciosAgregados().length === 0"
+                        (click)="irPaso(3)">
+                  Siguiente: Ajustar Series & Cargas ({{ ejerciciosAgregados().length }}) &rarr;
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- ==================== PASO 3: CONFIGURAR SERIES, CARGAS Y DESCANSOS ==================== -->
+          @if (pasoCreacion() === 3) {
+            <div class="paso-wizard-container animate-fade-in">
+              <div class="paso-header">
+                <h3>Paso 3: Configuración de Series, Cargas y Descansos</h3>
+                <p>Ajusta las series, repeticiones y pesos. Al hacer clic en un número, se seleccionará automáticamente para editarlo al instante sin borrar manualmente.</p>
+              </div>
+
+              <div class="ejercicios-configurados-seccion">
+                <div class="lista-ejercicios-config">
+                  @for (ea of ejerciciosAgregados(); track (ea.ejercicio.id + '_' + $index); let idx = $index; let total = $count) {
+                    <div class="item-config-ejercicio animate-fade-in">
+                      
+                      <div class="item-config-header">
+                        <div class="header-left">
+                          <span class="badge-idx">{{ idx + 1 }}</span>
+                          <strong>{{ ea.ejercicio.nombre }}</strong>
+                          <span class="grupo-txt">({{ ea.ejercicio.grupoMuscular }})</span>
+                        </div>
+                        
+                        <div class="header-acciones">
+                          <button type="button" class="btn-orden" (click)="moverEjercicio(idx, 'subir')" [disabled]="idx === 0" title="Subir">▲</button>
+                          <button type="button" class="btn-orden" (click)="moverEjercicio(idx, 'bajar')" [disabled]="idx === total - 1" title="Bajar">▼</button>
+                          <button type="button" class="btn-quitar-ej" (click)="quitarEjercicio(idx)" title="Quitar">&times;</button>
+                        </div>
+                      </div>
+
+                      <div class="item-config-inputs">
+                        <div class="input-param">
+                          <label>Series</label>
+                          <input type="number" 
+                                 [value]="ea.series" 
+                                 (focus)="seleccionarAlEnfocar($event)"
+                                 (input)="actualizarParametro(idx, 'series', $any($event.target).value)"
+                                 min="1" max="20" class="input-num">
+                        </div>
+
+                        <div class="input-param">
+                          <label>Reps</label>
+                          <input type="number" 
+                                 [value]="ea.repeticiones" 
+                                 (focus)="seleccionarAlEnfocar($event)"
+                                 (input)="actualizarParametro(idx, 'repeticiones', $any($event.target).value)"
+                                 min="1" max="100" class="input-num">
+                        </div>
+
+                        <div class="input-param">
+                          <label>Peso (kg)</label>
+                          <input type="number" 
+                                 [value]="ea.pesoKg" 
+                                 (focus)="seleccionarAlEnfocar($event)"
+                                 (input)="actualizarParametro(idx, 'pesoKg', $any($event.target).value)"
+                                 min="0" step="0.5" class="input-num">
+                        </div>
+
+                        <div class="input-param">
+                          <label>Descanso (s)</label>
+                          <input type="number" 
+                                 [value]="ea.descansoSeriesSegundos" 
+                                 (focus)="seleccionarAlEnfocar($event)"
+                                 (input)="actualizarParametro(idx, 'descansoSeriesSegundos', $any($event.target).value)"
+                                 min="15" step="5" class="input-num">
+                        </div>
+
+                        <div class="input-param toggle-unil">
+                          <label>Unilateral</label>
+                          <input type="checkbox" 
+                                 [checked]="ea.esUnilateral" 
+                                 (change)="actualizarParametro(idx, 'esUnilateral', $any($event.target).checked)">
+                        </div>
+                      </div>
+
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="paso-acciones doble">
+                <button type="button" class="btn-atras-paso" (click)="irPaso(2)">
+                  &larr; Volver a Ejercicios
+                </button>
+                <button type="button" 
+                        class="btn-guardar-rutina-modal btn-touch-accessible" 
+                        (click)="guardarRutina()">
+                  Guardar Rutina & Empezar 🚀
+                </button>
+              </div>
+            </div>
+          }
+
+        </form>
+
+      </div>
+    </div>
+  }
+
+</div>

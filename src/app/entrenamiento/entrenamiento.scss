@@ -1,0 +1,992 @@
+.entrenamiento-player-container {
+  max-width: 1100px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  color: #f3f4f6;
+
+  .cargando-estado, .error-estado {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: rgba(31, 41, 55, 0.4);
+    border-radius: 16px;
+    border: 1px solid rgba(75, 85, 99, 0.3);
+
+    .spinner {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      display: block;
+      animation: pulse 1.5s infinite;
+    }
+
+    .error-icon {
+      font-size: 3rem;
+      color: #f59e0b;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #9ca3af;
+      margin-bottom: 2rem;
+    }
+
+    .btn-volver {
+      display: inline-block;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      padding: 0.65rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+  }
+
+  .player-box {
+    background: rgba(31, 41, 55, 0.5);
+    border-radius: 20px;
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    padding: 2.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px);
+
+    &.split-view {
+      padding: 1.5rem;
+    }
+  }
+
+  /* PREPARACION */
+  .pantalla-preparacion {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+
+    .rutina-icon {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .desc {
+      color: #9ca3af;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    .rutina-resumen-stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      background: rgba(17, 24, 39, 0.4);
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+
+      b {
+        color: #10b981;
+      }
+    }
+
+    .lista-ejercicios-previa {
+      text-align: left;
+      background: rgba(17, 24, 39, 0.3);
+      border: 1px solid rgba(75, 85, 99, 0.2);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+
+      h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+        color: #60a5fa;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        li {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 0.9rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+          &:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+          }
+
+          .num {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+          }
+
+          .nombre {
+            font-weight: 600;
+            color: #fff;
+            flex: 1;
+          }
+
+          .config-txt {
+            color: #9ca3af;
+            font-size: 0.8rem;
+          }
+        }
+      }
+    }
+
+    .acciones-previa {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+
+      .btn-iniciar {
+        display: block;
+        width: 100%;
+        background: #10b981;
+        border: none;
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 1.15rem;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        transition: background 0.2s, transform 0.1s;
+
+        &:hover {
+          background: #059669;
+          transform: translateY(-2px);
+        }
+      }
+
+      .btn-cancelar-preparacion {
+        display: inline-block;
+        color: #9ca3af;
+        text-decoration: none;
+        font-weight: 600;
+
+        &:hover {
+          color: white;
+        }
+      }
+    }
+  }
+
+  /* WORKOUT RUNNER SPLIT LAYOUT */
+  .workout-runner-layout {
+    display: flex;
+    gap: 1.5rem;
+
+    @media (max-width: 992px) {
+      flex-direction: column;
+    }
+
+    /* SIDEBAR (LISTA DE EJERCICIOS) */
+    .workout-sidebar {
+      flex: 0 0 290px;
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid rgba(75, 85, 99, 0.4);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+
+      h3 {
+        font-size: 1rem;
+        font-weight: 800;
+        margin: 0;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.5rem;
+      }
+
+      .sidebar-lista-ejercicios {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 0.25rem;
+
+        .sidebar-ejercicio-btn {
+          display: flex;
+          align-items: center;
+          background: rgba(31, 41, 55, 0.4);
+          border: 1px solid rgba(75, 85, 99, 0.2);
+          border-radius: 10px;
+          padding: 0.6rem 0.8rem;
+          color: #d1d5db;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: left;
+          width: 100%;
+          gap: 0.75rem;
+
+          .num-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            color: #9ca3af;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.2s;
+          }
+
+          .ej-meta-txt {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+
+            .name {
+              font-size: 0.8rem;
+              font-weight: 700;
+              color: white;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 160px;
+            }
+
+            .sub {
+              font-size: 0.7rem;
+              color: #9ca3af;
+            }
+          }
+
+          .check-icon {
+            font-size: 0.75rem;
+            color: #10b981;
+          }
+
+          &:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+          }
+
+          &.activo {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+
+            .num-indicator {
+              background: #3b82f6;
+              color: white;
+            }
+
+            .ej-meta-txt .name {
+              color: #60a5fa;
+            }
+          }
+
+          &.completado {
+            border-color: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.03);
+
+            .num-indicator {
+              background: rgba(16, 185, 129, 0.2);
+              color: #34d399;
+            }
+          }
+        }
+      }
+
+      .sidebar-cronometro {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(75, 85, 99, 0.2);
+        border-radius: 8px;
+        padding: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+
+        span {
+          color: #9ca3af;
+        }
+
+        strong {
+          color: #10b981;
+          font-family: monospace;
+          font-size: 1.1rem;
+        }
+      }
+
+      .btn-finalizar-sesion-sidebar {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        padding: 0.6rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s;
+
+        &:hover {
+          background: #ef4444;
+          color: white;
+        }
+      }
+    }
+
+    /* PANEL PRINCIPAL RUNNER */
+    .workout-main-panel {
+      flex: 1;
+      background: rgba(17, 24, 39, 0.3);
+      border: 1px solid rgba(75, 85, 99, 0.3);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+
+      /* MODO DESCANSO */
+      .pantalla-descanso-panel {
+        text-align: center;
+        padding: 3rem 1rem;
+        margin: auto 0;
+
+        .descanso-label {
+          font-size: 0.85rem;
+          color: #10b981;
+          text-transform: uppercase;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          background: rgba(16, 185, 129, 0.15);
+          padding: 0.3rem 0.8rem;
+          border-radius: 9999px;
+          display: inline-block;
+          margin-bottom: 1rem;
+        }
+
+        h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: white;
+
+          b {
+            color: #3b82f6;
+          }
+          
+          .unil-highlight {
+            color: #f43f5e;
+          }
+        }
+
+        .timer-display {
+          width: 150px;
+          height: 150px;
+          border: 6px solid #10b981;
+          border-radius: 50%;
+          margin: 2rem auto;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+          animation: pulse-border 1.5s infinite;
+
+          .numero {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+          }
+
+          .leyenda {
+            font-size: 0.65rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+          }
+        }
+
+        .btn-saltar-descanso {
+          background: none;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: #d1d5db;
+          padding: 0.65rem 1.5rem;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+          }
+        }
+      }
+
+      /* MODO EJECUCION */
+      .ejercicio-ejecucion-panel {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .ejercicio-panel-header {
+          margin-bottom: 1.25rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          padding-bottom: 0.75rem;
+
+          .badge-numero {
+            font-size: 0.75rem;
+            color: #3b82f6;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+
+          h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+            margin-top: 0.2rem;
+            margin-bottom: 0.4rem;
+          }
+
+          .badge-grupo {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+        }
+
+        /* SPLIT DE CONTENIDO */
+        .ejercicio-contenido-split {
+          display: flex;
+          gap: 1.25rem;
+          margin-bottom: 1.25rem;
+
+          @media (max-width: 768px) {
+            flex-direction: column;
+          }
+
+          /* BIOMECÁNICA */
+          .biomecanica-tips-card {
+            flex: 1.3;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 12px;
+            padding: 1rem;
+
+            .card-header-biomec {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              margin-bottom: 0.5rem;
+
+              .icon {
+                font-size: 1.2rem;
+              }
+
+              h4 {
+                font-size: 0.9rem;
+                font-weight: 800;
+                color: #93c5fd;
+                margin: 0;
+              }
+            }
+
+            p {
+              font-size: 0.8rem;
+              color: #d1d5db;
+              line-height: 1.5;
+              margin: 0;
+            }
+          }
+
+          /* GALERÍA MULTIMEDIA */
+          .media-gallery-card {
+            flex: 1;
+            background: rgba(17, 24, 39, 0.4);
+            border: 1px solid rgba(75, 85, 99, 0.25);
+            border-radius: 12px;
+            padding: 1rem;
+            
+            .card-header-media {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              margin-bottom: 0.75rem;
+
+              .icon { font-size: 1.2rem; }
+              h4 {
+                font-size: 0.9rem;
+                font-weight: 800;
+                color: #e5e7eb;
+                margin: 0;
+              }
+            }
+
+            .media-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 0.5rem;
+
+              .media-item {
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px dashed rgba(75, 85, 99, 0.4);
+                border-radius: 8px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+                cursor: not-allowed;
+
+                span {
+                  font-size: 0.75rem;
+                  color: #9ca3af;
+                  font-weight: 600;
+                }
+
+                &:hover {
+                  background: rgba(255, 255, 255, 0.05);
+                  border-color: rgba(156, 163, 175, 0.5);
+                }
+
+                &.locked-media {
+                  background: rgba(239, 68, 68, 0.03) !important;
+                  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+                  opacity: 0.7;
+                  
+                  span {
+                    color: #f87171 !important;
+                    font-size: 0.7rem;
+                  }
+
+                  &:hover {
+                    background: rgba(239, 68, 68, 0.08) !important;
+                    opacity: 0.9;
+                  }
+                }
+
+                &.video-placeholder {
+                  grid-column: span 3;
+                  background: rgba(59, 130, 246, 0.08);
+                  border-color: rgba(59, 130, 246, 0.3);
+                  height: 100px;
+                  
+                  span {
+                    color: #60a5fa;
+                    font-size: 0.9rem;
+                  }
+
+                  &.locked-media {
+                    background: rgba(239, 68, 68, 0.03) !important;
+                    border-color: rgba(239, 68, 68, 0.25) !important;
+                    
+                    span {
+                      color: #f87171 !important;
+                      font-size: 0.85rem;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        /* RESUMEN DE ESPECIFICACIONES */
+        .ejercicio-resumen-specs {
+          display: flex;
+          gap: 1rem;
+          background: rgba(31, 41, 55, 0.45);
+          border: 1px dashed rgba(75, 85, 99, 0.35);
+          border-radius: 10px;
+          padding: 0.75rem 1.25rem;
+          margin-bottom: 1.25rem;
+          align-items: center;
+          flex-wrap: wrap;
+
+          .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.85rem;
+
+            .lbl {
+              color: #9ca3af;
+              font-weight: 500;
+            }
+
+            .val {
+              color: #60a5fa;
+              font-weight: 800;
+
+              .input-descanso {
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(96, 165, 250, 0.4);
+                color: #60a5fa;
+                border-radius: 6px;
+                padding: 0.15rem 0.4rem;
+                width: 55px;
+                font-weight: 800;
+                text-align: center;
+                font-size: 0.85rem;
+                outline: none;
+                transition: border-color 0.2s;
+
+                &:focus {
+                  border-color: #3b82f6;
+                  box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+                }
+
+                &::-webkit-inner-spin-button,
+                &::-webkit-outer-spin-button {
+                  opacity: 1;
+                }
+              }
+            }
+
+            &.unilateral {
+              background: rgba(244, 63, 94, 0.15);
+              border: 1px solid rgba(244, 63, 94, 0.3);
+              padding: 0.15rem 0.5rem;
+              border-radius: 6px;
+
+              .lbl {
+                color: #f43f5e;
+              }
+              .val {
+                color: #fda4af;
+              }
+            }
+          }
+        }
+
+        /* LISTA DE SERIES EN FILAS */
+        .series-workout-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 2rem;
+
+          h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #d1d5db;
+            margin: 0 0 0.25rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+
+          .serie-workout-row {
+            background: rgba(17, 24, 39, 0.35);
+            border: 1px solid rgba(75, 85, 99, 0.25);
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.25s ease;
+
+            &.completada {
+              background: rgba(16, 185, 129, 0.04);
+              border-color: rgba(16, 185, 129, 0.35);
+
+              .row-left {
+                .serie-badge {
+                  background: rgba(16, 185, 129, 0.25);
+                  color: #34d399;
+                  border-color: rgba(16, 185, 129, 0.4);
+                }
+                .serie-reps-peso {
+                  text-decoration: line-through;
+                  color: #6b7280;
+                }
+              }
+            }
+
+            .row-left {
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+
+              .serie-badge {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(75, 85, 99, 0.4);
+                color: #e5e7eb;
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 0.2rem 0.6rem;
+                border-radius: 6px;
+                text-transform: uppercase;
+              }
+
+              .serie-reps-peso {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #fff;
+              }
+            }
+
+            .row-right {
+              display: flex;
+              align-items: center;
+              gap: 1.5rem;
+
+              .serie-cronometro {
+                min-width: 80px;
+                text-align: right;
+
+                .cronometro-btn {
+                  background: rgba(31, 41, 55, 0.5);
+                  border: 1px solid rgba(75, 85, 99, 0.3);
+                  border-radius: 8px;
+                  padding: 0.4rem 0.6rem;
+                  font-size: 0.85rem;
+                  font-family: monospace;
+                  cursor: pointer;
+                  transition: all 0.2s;
+
+                  &:hover {
+                    background: rgba(55, 65, 81, 0.7);
+                    border-color: #9ca3af;
+                  }
+
+                  &.disabled-free {
+                    background: rgba(31, 41, 55, 0.3) !important;
+                    border-color: rgba(239, 68, 68, 0.25) !important;
+                    cursor: not-allowed !important;
+                    opacity: 0.8;
+
+                    .cronometro-disabled {
+                      color: #f87171 !important;
+                      font-weight: 800;
+                    }
+
+                    &:hover {
+                      background: rgba(31, 41, 55, 0.3) !important;
+                    }
+                  }
+
+                  .cronometro-default {
+                    color: #9ca3af;
+                  }
+
+                  .cronometro-activo {
+                    color: #f59e0b;
+                    font-weight: 800;
+                    text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+                  }
+                }
+              }
+
+              .btn-check-serie {
+                background: rgba(55, 65, 81, 0.4);
+                border: 1px solid rgba(75, 85, 99, 0.4);
+                color: #d1d5db;
+                padding: 0.4rem 0.9rem;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s ease;
+
+                &:hover {
+                  background: rgba(59, 130, 246, 0.15);
+                  border-color: #3b82f6;
+                  color: #60a5fa;
+                }
+
+                &.checked {
+                  background: rgba(16, 185, 129, 0.15);
+                  border-color: #10b981;
+                  color: #34d399;
+                }
+              }
+            }
+          }
+        }
+
+        /* CONTROLES RUNNER */
+        .acciones-panel-runner {
+          display: flex;
+          gap: 1rem;
+          margin-top: auto;
+
+          @media (max-width: 480px) {
+            flex-direction: column;
+          }
+
+          button {
+            flex: 1;
+            padding: 0.9rem;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+          }
+
+          .btn-completar-serie-panel {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+
+            &:hover {
+              background: #059669;
+              transform: translateY(-1px);
+            }
+          }
+
+          .btn-siguiente-ejercicio-panel {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+
+            &:hover {
+              background: #3b82f6;
+              color: white;
+              transform: translateY(-1px);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* COMPLETADO */
+  .pantalla-completado {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+
+    .trofeo-icon {
+      font-size: 5rem;
+      display: block;
+      margin-bottom: 1.5rem;
+      animation: scaleUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .completado-sub {
+      color: #9ca3af;
+      margin-bottom: 3rem;
+    }
+
+    .resumen-final-box {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 4rem;
+
+      .resumen-card {
+        flex: 1;
+        background: rgba(17, 24, 39, 0.5);
+        border: 1px solid rgba(75, 85, 99, 0.3);
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+
+        .resumen-val {
+          font-size: 2.5rem;
+          font-weight: 800;
+          color: #10b981;
+          line-height: 1;
+          margin-bottom: 0.5rem;
+        }
+
+        .resumen-lbl {
+          font-size: 0.8rem;
+          color: #9ca3af;
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .btn-volver-inicio {
+      display: block;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      padding: 0.9rem;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+      transition: background 0.2s;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.4); }
+}
+
+@keyframes scaleUp {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}

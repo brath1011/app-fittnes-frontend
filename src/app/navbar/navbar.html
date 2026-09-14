@@ -1,0 +1,184 @@
+<nav class="navbar-moderno">
+  <!-- Izquierda: Logo -->
+  <div class="logo" [routerLink]="auth.estaAutenticado() ? '/rutinas' : '/login'" style="cursor: pointer;">
+    <span class="logo-texto">FitnessGuide</span>
+  </div>
+
+  <!-- Centro: Enlaces con Traducción Reactiva (Desktop / Tablet) -->
+  <ul class="enlaces">
+    @if (!auth.esAdmin()) {
+      @if (auth.estaAutenticado()) {
+        <li>
+          <a routerLink="/rutinas" routerLinkActive="activo">
+            {{ acc.t('nav.rutinas') }}
+          </a>
+        </li>
+        <li>
+          <a routerLink="/entrenamiento" routerLinkActive="activo">
+            {{ acc.t('nav.entrenamiento') }}
+          </a>
+        </li>
+      }
+      <li>
+        <a routerLink="/ejercicios" routerLinkActive="activo">
+          {{ acc.t('nav.ejercicios') }}
+        </a>
+      </li>
+      @if (auth.estaAutenticado()) {
+        <li>
+          <a routerLink="/cursos" routerLinkActive="activo">
+            {{ acc.t('nav.guia') }}
+          </a>
+        </li>
+      }
+    } @else {
+      <li><a routerLink="/admin" routerLinkActive="activo">{{ acc.t('nav.admin') }}</a></li>
+    }
+  </ul>
+
+  <!-- Derecha: Búsqueda, Herramientas de Accesibilidad, Iniciar Sesión / Ajustes -->
+  <div class="acciones">
+    
+    <!-- Barra de Búsqueda -->
+    @if (!auth.esAdmin()) {
+      <div class="buscador-container">
+        <span class="lupa-icon">🔍</span>
+        <input type="text" 
+               class="input-buscar" 
+               [placeholder]="acc.t('nav.buscarPlaceholder')" 
+               [value]="buscarTermino()"
+               (input)="buscar($event)">
+      </div>
+    }
+
+    <!-- BARRA DE ACCESIBILIDAD & IDIOMAS (COMPACTA & ELEGANTE) -->
+    <div class="barra-accesibilidad-nav">
+      
+      <!-- 1. SELECTOR DE IDIOMAS (SOLO ABREVIATURA ES, EN, PT, ZH, QU, AY) -->
+      <div class="dropdown-idioma">
+        <button class="btn-idioma btn-touch-accessible" 
+                (click)="toggleMenuIdioma($event)" 
+                [title]="acc.t('nav.idioma')"
+                aria-label="Seleccionar idioma">
+          <span class="codigo-idioma">{{ acc.idiomaActual().toUpperCase() }}</span>
+          <span class="flechita-idioma" [class.abierto]="menuIdiomaAbierto()">⌄</span>
+        </button>
+
+        @if (menuIdiomaAbierto()) {
+          <div class="dropdown-menu-idioma animate-fade-in">
+            @for (idioma of acc.idiomasDisponibles; track idioma.codigo) {
+              <button class="item-idioma" 
+                      [class.activo]="acc.idiomaActual() === idioma.codigo"
+                      (click)="cambiarIdioma(idioma.codigo)">
+                <span class="codigo-badge">{{ idioma.codigo.toUpperCase() }}</span>
+                <div class="info-item-idioma">
+                  <span class="nombre-idioma">{{ idioma.nombre }}</span>
+                  <span class="nativo-idioma">{{ idioma.nombreNativo }}</span>
+                </div>
+                @if (acc.idiomaActual() === idioma.codigo) {
+                  <span class="check-activo">✓</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- 2. CONTROL DE TAMAÑO DE TEXTO (DROPDOWN COMPACTO A⌄) -->
+      <div class="dropdown-fuente">
+        <button class="btn-fuente-dropdown btn-touch-accessible" 
+                (click)="toggleMenuFuente($event)"
+                [title]="acc.t('nav.tamanoTexto')"
+                aria-label="Cambiar tamaño de texto">
+          <span class="icono-fuente-tag">A</span>
+          <span class="flechita-fuente" [class.abierto]="menuFuenteAbierto()">⌄</span>
+        </button>
+
+        @if (menuFuenteAbierto()) {
+          <div class="dropdown-menu-fuente animate-fade-in">
+            <div class="titulo-menu-fuente">{{ acc.t('nav.tamanoTexto') }}</div>
+            
+            <button class="item-fuente" 
+                    [class.activo]="acc.tamanoFuente() === 'pequeno'" 
+                    (click)="cambiarTamanoFuente('pequeno')">
+              <span class="preview-txt font-sm">A-</span>
+              <span class="lbl-fuente">Pequeño (88%)</span>
+              @if (acc.tamanoFuente() === 'pequeno') { <span class="check-activo">✓</span> }
+            </button>
+
+            <button class="item-fuente" 
+                    [class.activo]="acc.tamanoFuente() === 'normal'" 
+                    (click)="cambiarTamanoFuente('normal')">
+              <span class="preview-txt font-md">A</span>
+              <span class="lbl-fuente">Normal (100%)</span>
+              @if (acc.tamanoFuente() === 'normal') { <span class="check-activo">✓</span> }
+            </button>
+
+            <button class="item-fuente" 
+                    [class.activo]="acc.tamanoFuente() === 'grande'" 
+                    (click)="cambiarTamanoFuente('grande')">
+              <span class="preview-txt font-lg">A+</span>
+              <span class="lbl-fuente">Grande (115%)</span>
+              @if (acc.tamanoFuente() === 'grande') { <span class="check-activo">✓</span> }
+            </button>
+
+            <button class="item-fuente" 
+                    [class.activo]="acc.tamanoFuente() === 'extragrande'" 
+                    (click)="cambiarTamanoFuente('extragrande')">
+              <span class="preview-txt font-xl">A++</span>
+              <span class="lbl-fuente">Extra Grande (130%)</span>
+              @if (acc.tamanoFuente() === 'extragrande') { <span class="check-activo">✓</span> }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- 3. TOGGLE MODO OSCURO / MODO CLARO -->
+      <button class="btn-tema-toggle btn-touch-accessible" 
+              (click)="toggleTema()" 
+              [title]="acc.temaActual() === 'dark' ? acc.t('nav.modoClaro') : acc.t('nav.modoOscuro')"
+              aria-label="Alternar modo oscuro o claro">
+        @if (acc.temaActual() === 'dark') {
+          <span class="icono-tema sol">☀️</span>
+        } @else {
+          <span class="icono-tema luna">🌙</span>
+        }
+      </button>
+
+    </div>
+
+    <!-- Usuario / Configuración / Iniciar Sesión -->
+    @if (auth.estaAutenticado()) {
+      <div class="dropdown-usuario" (click)="toggleMenu($event)">
+        <button class="btn-usuario-dropdown btn-touch-accessible" [title]="acc.t('nav.configuracion')" aria-label="Configuración y Perfil">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icono-tuerca-nav">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span class="usuario-email">{{ auth.usuario()?.nombre || auth.usuario()?.email }}</span>
+          <span class="flechita" [class.abierto]="menuAbierto()">⌄</span>
+        </button>
+        @if (menuAbierto()) {
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="abrirAjustes($event)">
+              ⚙️ {{ acc.t('nav.configuracion') }}
+            </button>
+            <a routerLink="/perfil" [queryParams]="{tab: 'DASHBOARD'}" class="dropdown-item" (click)="cerrarMenu()">
+              👤 {{ acc.t('nav.perfil') }}
+            </a>
+            <a routerLink="/pagos" class="dropdown-item premium-item-menu" (click)="cerrarMenu()">
+              ⭐ {{ acc.t('nav.premium') }}
+            </a>
+            @if (auth.esAdmin()) {
+              <a routerLink="/admin" class="dropdown-item" (click)="cerrarMenu()">🛡️ {{ acc.t('nav.panelControl') }}</a>
+            }
+            <button class="dropdown-item btn-salir" (click)="cerrarSesion()">🚪 {{ acc.t('nav.cerrarSesion') }}</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <a routerLink="/login" class="btn-login btn-touch-accessible">{{ acc.t('nav.iniciarSesion') }}</a>
+    }
+
+  </div>
+</nav>

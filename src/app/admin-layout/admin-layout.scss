@@ -1,0 +1,123 @@
+.admin-dashboard-container {
+  display: flex;
+  min-height: calc(100vh - 60px); // Subtract navbar height if applicable
+  background-color: #f8fafc;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background-color: #1e293b;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 0;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 10;
+
+  .sidebar-header {
+    padding: 0 2rem 2rem 2rem;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 1rem;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .role-badge {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background-color: #3b82f6;
+      color: #fff;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 1rem;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1rem;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+
+      .icon {
+        font-size: 1.25rem;
+      }
+
+      &:hover {
+        background-color: #334155;
+        color: #fff;
+      }
+
+      &.active {
+        background-color: #3b82f6;
+        color: #fff;
+      }
+    }
+  }
+}
+
+.admin-content {
+  flex: 1;
+  padding: 2rem;
+  margin-left: 260px; /* Ancho de la sidebar fija */
+  overflow-y: auto;
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard-container {
+    flex-direction: column;
+  }
+  
+  .admin-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 1rem 0;
+    
+    .sidebar-nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+
+  .admin-content {
+    margin-left: 0;
+  }
+}

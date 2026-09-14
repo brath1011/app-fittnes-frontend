@@ -1,0 +1,198 @@
+.contenedor-principal {
+  min-height: calc(100vh - 64px);
+  background-color: var(--bg-app, #000000);
+}
+
+.modal-overlay-info {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content-info {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  
+  h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #111;
+  }
+}
+
+.modal-body-info {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+
+  h3 {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #111;
+  }
+  
+  ul {
+    padding-left: 20px;
+    margin-bottom: 15px;
+  }
+}
+
+.btn-cerrar-info {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #777;
+  cursor: pointer;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: #111;
+  }
+}
+
+/* ==========================================
+   BARRA DE NAVEGACIÓN MÓVIL INFERIOR (ESTILO HEVY / FITNESS APP)
+   ========================================== */
+.bottom-nav-mobile {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(18, 18, 20, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-subtle, #27272a);
+  z-index: 999;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 8px max(env(safe-area-inset-bottom, 0px), 6px) 8px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    height: 100%;
+    color: var(--text-secondary, #a1a1aa);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    .bottom-nav-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 28px;
+      border-radius: 14px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+      svg {
+        transition: transform 0.2s ease;
+      }
+    }
+
+    &.activo {
+      color: var(--text-primary, #ffffff);
+      font-weight: 700;
+
+      .bottom-nav-icon {
+        color: var(--primary-color, #007aff);
+
+        svg {
+          transform: scale(1.1);
+        }
+      }
+
+      &.item-entrenamiento .bottom-nav-icon {
+        background: rgba(0, 122, 255, 0.15);
+        color: var(--primary-color, #007aff);
+      }
+    }
+
+    &:active .bottom-nav-icon {
+      transform: scale(0.92);
+    }
+  }
+}
+
+html.theme-light {
+  .bottom-nav-mobile {
+    background: rgba(255, 255, 255, 0.94);
+    border-top-color: var(--border-subtle, #e5e5ea);
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.06);
+
+    .bottom-nav-item {
+      color: var(--text-secondary, #636366);
+
+      &.activo {
+        color: var(--primary-color, #007aff);
+
+        .bottom-nav-icon {
+          color: var(--primary-color, #007aff);
+        }
+
+        &.item-entrenamiento .bottom-nav-icon {
+          background: rgba(0, 122, 255, 0.12);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .contenedor-principal {
+    padding-bottom: 74px; /* Espacio para que el contenido no quede tapado por la barra inferior */
+  }
+
+  .footer-oscuro {
+    padding: 1.5rem 1rem calc(80px + env(safe-area-inset-bottom, 0px)) 1rem;
+    margin-top: 20px;
+
+    .footer-contenido {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .footer-columna:first-child {
+      grid-column: span 2;
+      
+      p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+

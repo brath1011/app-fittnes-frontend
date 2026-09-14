@@ -1,0 +1,565 @@
+.pagos-membresias-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  color: #f3f4f6;
+
+  .seccion-cabecera {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #9ca3af;
+      font-size: 1.1rem;
+    }
+  }
+
+  .alerta {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    &.alerta-exito {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    &.alerta-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+  }
+
+  /* PLANES GRID */
+  .planes-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 5rem;
+    flex-wrap: wrap;
+  }
+
+  .plan-card {
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    &.premium {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.05);
+
+      &:hover {
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
+      }
+    }
+
+    .premium-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.25rem 0.8rem;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+    }
+
+    .plan-header {
+      text-align: center;
+      margin-bottom: 2rem;
+
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.75rem;
+      }
+
+      .precio {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+
+        .mes {
+          font-size: 0.95rem;
+          color: #9ca3af;
+          font-weight: 400;
+        }
+      }
+    }
+
+    .plan-beneficios {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2.5rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      color: #d1d5db;
+
+      li {
+        line-height: 1.4;
+      }
+    }
+
+    .btn-plan {
+      margin-top: auto;
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+
+      &:not(.secundario) {
+        background: #10b981;
+        color: white;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+
+        &:hover {
+          background: #059669;
+        }
+      }
+
+      &.secundario {
+        background: rgba(107, 114, 128, 0.2);
+        border: 1px solid rgba(107, 114, 128, 0.4);
+        color: #9ca3af;
+        cursor: default;
+      }
+    }
+  }
+
+  /* HISTORIAL BOLETAS */
+  .historial-boletas-seccion {
+    border-top: 1px solid rgba(75, 85, 99, 0.3);
+    padding-top: 3rem;
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.25rem;
+    }
+
+    .sub-seccion {
+      color: #9ca3af;
+      margin-bottom: 2rem;
+    }
+
+    .no-boletas {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: rgba(31, 41, 55, 0.3);
+      border-radius: 12px;
+      border: 1px dashed rgba(75, 85, 99, 0.4);
+
+      .icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        color: #9ca3af;
+      }
+    }
+
+    .tabla-container {
+      background: rgba(31, 41, 55, 0.4);
+      border: 1px solid rgba(75, 85, 99, 0.3);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+
+    .tabla-boletas {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+
+      th, td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+      }
+
+      th {
+        background: rgba(17, 24, 39, 0.4);
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+      }
+
+      td {
+        color: #d1d5db;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .metodo-badge {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .envio-badge {
+        font-size: 0.8rem;
+        color: #f59e0b;
+
+        &.enviado {
+          color: #10b981;
+        }
+      }
+
+      .acciones-tabla {
+        display: flex;
+        gap: 0.5rem;
+
+        .btn-accion {
+          padding: 0.4rem 0.8rem;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          text-decoration: none;
+
+          &.desc {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.2);
+            }
+          }
+
+          &.reenviar {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+
+            &:hover {
+              background: #10b981;
+              color: white;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* MODAL PASARELA */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    padding: 1rem;
+  }
+
+  .modal-content {
+    background: #1f2937;
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
+    .btn-cerrar-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #9ca3af;
+      cursor: pointer;
+
+      &:hover {
+        color: #fff;
+      }
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.25rem;
+    }
+
+    .modal-desc {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+
+      b {
+        color: #10b981;
+      }
+    }
+
+    .formulario-pasarela {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        label {
+          font-weight: 600;
+          font-size: 0.85rem;
+          color: #d1d5db;
+        }
+
+        input {
+          background: rgba(17, 24, 39, 0.7);
+          border: 1px solid rgba(75, 85, 99, 0.5);
+          border-radius: 8px;
+          color: white;
+          padding: 0.6rem 0.8rem;
+          font-size: 0.95rem;
+
+          &:focus {
+            outline: none;
+            border-color: #10b981;
+          }
+        }
+
+        .metodo-pago-selector {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          background: rgba(17, 24, 39, 0.4);
+          padding: 0.75rem;
+          border-radius: 8px;
+
+          label {
+            font-size: 0.9rem;
+            color: #d1d5db;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-weight: 400;
+          }
+        }
+      }
+
+      .form-row {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .flex-1 {
+        flex: 1;
+      }
+
+      .modal-acciones {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        border-top: 1px solid rgba(75, 85, 99, 0.3);
+        padding-top: 1.5rem;
+        margin-top: 0.5rem;
+
+        .btn-cancelar {
+          background: rgba(107, 114, 128, 0.2);
+          border: 1px solid rgba(107, 114, 128, 0.4);
+          color: #d1d5db;
+          padding: 0.6rem 1.2rem;
+          border-radius: 8px;
+          cursor: pointer;
+
+          &:hover {
+            background: rgba(107, 114, 128, 0.4);
+          }
+        }
+
+        .btn-pagar {
+          background: #10b981;
+          border: none;
+          color: white;
+          padding: 0.6rem 1.5rem;
+          border-radius: 8px;
+          font-weight: 700;
+          cursor: pointer;
+
+          &:hover:not(:disabled) {
+            background: #059669;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+  }
+  
+  /* CONSOLA DE PRUEBAS DE PLANES */
+  .consola-pruebas-plan {
+    background: rgba(17, 24, 39, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(8px);
+
+    .consola-header {
+      margin-bottom: 1.25rem;
+
+      .badge-sandbox {
+        display: inline-block;
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: white;
+        margin: 0 0 0.25rem 0;
+      }
+
+      p {
+        color: #9ca3af;
+        font-size: 0.85rem;
+        margin: 0;
+      }
+    }
+
+    .consola-acciones {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+
+      .plan-indicator {
+        font-size: 0.95rem;
+        color: #d1d5db;
+
+        strong {
+          margin-left: 0.5rem;
+          font-weight: 800;
+          
+          &.plan-pro {
+            color: #fbbf24;
+            text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+          }
+
+          &.plan-gratis {
+            color: #60a5fa;
+          }
+        }
+      }
+
+      .botones-switch {
+        display: flex;
+        gap: 0.75rem;
+
+        .btn-switch {
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          font-weight: 700;
+          cursor: pointer;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.05);
+          color: #9ca3af;
+          transition: all 0.2s ease;
+
+          &:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+          }
+
+          &.gratis.activo {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+          }
+
+          &.pro.activo {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+            box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+          }
+        }
+      }
+    }
+  }
+}

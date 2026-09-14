@@ -1,0 +1,129 @@
+<div class="admin-dashboard">
+  <div class="dashboard-header">
+    <h1>📊 Dashboard General</h1>
+    <p class="dashboard-subtitle">Resumen del catálogo de ejercicios y estado del sistema</p>
+  </div>
+
+  @if (cargando()) {
+    <div class="cargando-estado">
+      <div class="spinner"></div>
+      <p>Cargando métricas del sistema...</p>
+    </div>
+  } @else {
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-primary">
+        <div class="kpi-icon">🏋️</div>
+        <div class="kpi-info">
+          <span class="kpi-valor">{{ ejerciciosConEfectividad() }}</span>
+          <span class="kpi-label">Ejercicios Activos</span>
+          <span class="kpi-sub">de {{ totalEjercicios() }} totales en BD</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-info">
+          <span class="kpi-valor">{{ ejerciciosCompuestos() }}</span>
+          <span class="kpi-label">Compuestos</span>
+          <span class="kpi-sub">vs {{ ejerciciosAislamiento() }} aislamientos</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon">📁</div>
+        <div class="kpi-info">
+          <span class="kpi-valor">{{ subcategoriasUnicas() }}</span>
+          <span class="kpi-label">Subcategorías</span>
+          <span class="kpi-sub">{{ gruposMusculares.length }} grupos musculares</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class]="porcentajeCobertura() >= 70 ? 'kpi-emerald' : 'kpi-amber'">
+        <div class="kpi-icon">🖼️</div>
+        <div class="kpi-info">
+          <span class="kpi-valor">{{ porcentajeCobertura() }}%</span>
+          <span class="kpi-label">Cobertura Multimedia</span>
+          <span class="kpi-sub">{{ ejerciciosConFoto() }} con foto · {{ ejerciciosConVideo() }} con video</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Content Grid -->
+    <div class="dashboard-content-grid">
+      <!-- Distribución por Grupo Muscular -->
+      <div class="dashboard-panel panel-distribucion">
+        <h2>📈 Distribución por Grupo Muscular</h2>
+        <div class="distribucion-lista">
+          @for (item of distribucionPorGrupo(); track item.grupo) {
+            <div class="distribucion-item">
+              <div class="dist-info">
+                <span class="dist-icono">{{ grupoIconos[item.grupo] || '🏋️' }}</span>
+                <span class="dist-nombre">{{ item.grupo }}</span>
+                <span class="dist-cantidad">{{ item.cantidad }} ej.</span>
+              </div>
+              <div class="dist-barra-container">
+                <div class="dist-barra" [style.width.%]="item.porcentaje"></div>
+              </div>
+              <span class="dist-porcentaje">{{ item.porcentaje }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Accesos Rápidos -->
+      <div class="dashboard-panel panel-accesos">
+        <h2>🚀 Accesos Rápidos</h2>
+        <div class="accesos-grid">
+          <a routerLink="/admin/ejercicios" class="acceso-card acceso-ejercicios">
+            <span class="acceso-icono">🏋️‍♂️</span>
+            <span class="acceso-titulo">Gestión de Ejercicios</span>
+            <span class="acceso-desc">Crear, editar y gestionar el catálogo</span>
+          </a>
+          <a routerLink="/admin/pagos" class="acceso-card acceso-pagos">
+            <span class="acceso-icono">💳</span>
+            <span class="acceso-titulo">Auditoría de Pagos</span>
+            <span class="acceso-desc">Revisar transacciones y boletas</span>
+          </a>
+        </div>
+
+        <!-- Resumen Tipo de Ejercicio -->
+        <div class="tipo-resumen">
+          <h3>Tipo de Ejercicio</h3>
+          <div class="tipo-barra-visual">
+            <div class="tipo-compuesto" [style.width.%]="totalEjercicios() > 0 ? (ejerciciosCompuestos() / ejerciciosConEfectividad() * 100) : 50">
+              Compuesto {{ ejerciciosCompuestos() }}
+            </div>
+            <div class="tipo-aislamiento" [style.width.%]="totalEjercicios() > 0 ? (ejerciciosAislamiento() / ejerciciosConEfectividad() * 100) : 50">
+              Aislamiento {{ ejerciciosAislamiento() }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ejercicios sin Multimedia -->
+    @if (ejerciciosSinMultimedia().length > 0) {
+      <div class="dashboard-panel panel-sin-media">
+        <h2>⚠️ Ejercicios sin Multimedia ({{ ejerciciosSinMultimedia().length }})</h2>
+        <p class="panel-desc">Estos ejercicios no tienen fotos asignadas. Asígnalas desde la Gestión de Ejercicios.</p>
+        <div class="tabla-sin-media">
+          <div class="tabla-header">
+            <span>Nombre</span>
+            <span>Grupo</span>
+            <span>Subcategoría</span>
+            <span>Tipo</span>
+          </div>
+          @for (ej of ejerciciosSinMultimedia(); track ej.id) {
+            <div class="tabla-row">
+              <span class="nombre-ej">{{ ej.nombre }}</span>
+              <span class="badge-grupo">{{ ej.grupoMuscular }}</span>
+              <span>{{ ej.subcategoria || '—' }}</span>
+              <span class="badge-tipo" [class.compuesto]="ej.tipo === 'COMPUESTO'">{{ ej.tipo || '—' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

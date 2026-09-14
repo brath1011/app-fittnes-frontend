@@ -1,0 +1,33 @@
+<div class="admin-dashboard-container">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <h2>Panel Admin</h2>
+      <p class="role-badge">{{ auth.usuario()?.rol }}</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      @if (auth.esAdmin()) {
+      <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/admin/ejercicios" routerLinkActive="active" class="nav-item">
+        <span class="icon">🏋️‍♂️</span>
+        <span>Ejercicios</span>
+      </a>
+
+      <a routerLink="/admin/pagos" routerLinkActive="active" class="nav-item">
+        <span class="icon">💳</span>
+        <span>Auditoría de Pagos</span>
+      </a>
+      }
+    </nav>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

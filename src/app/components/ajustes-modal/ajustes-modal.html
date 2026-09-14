@@ -1,0 +1,611 @@
+@if (modal.abierto()) {
+  <div class="ajustes-overlay animate-fade-in" (click)="cerrar()">
+    <div class="ajustes-container" (click)="$event.stopPropagation()">
+      
+      <!-- CABECERA SUPERIOR ESTILO MÓVIL MODERNO (← Ajustes ✕) -->
+      <div class="ajustes-header">
+        <button class="btn-retroceso btn-touch-accessible" (click)="volver()" title="Volver">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+
+        <h1 class="ajustes-titulo">{{ tituloSubPantalla }}</h1>
+
+        <button class="btn-cerrar-ajustes btn-touch-accessible" (click)="cerrar()" title="Cerrar">
+          &times;
+        </button>
+      </div>
+
+      <!-- AVISO DE ACCIÓN RÁPIDA -->
+      @if (mensajeExito()) {
+        <div class="alerta-ajustes exito animate-slide-down">
+          <span>✓</span> {{ mensajeExito() }}
+        </div>
+      }
+      @if (mensajeError()) {
+        <div class="alerta-ajustes error animate-slide-down">
+          <span>⚠️</span> {{ mensajeError() }}
+        </div>
+      }
+
+      <div class="ajustes-body">
+
+        <!-- ============================================== -->
+        <!-- 1. VISTA PRINCIPAL DE AJUSTES                  -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'PRINCIPAL') {
+          
+          <!-- BANNER DE PREVISUALIZACIÓN DE TEMA Y PALETA (COMO EN LA CAPTURA) -->
+          <div class="ajustes-banner-temas">
+            <!-- Tarjeta Tema Oscuro -->
+            <button type="button" 
+                    class="card-preview-tema" 
+                    [class.activo]="acc.temaActual() === 'dark'"
+                    (click)="seleccionarTema('dark')">
+              <div class="tema-mockup dark-mode-mockup">
+                <div class="mockup-bar header-mock"></div>
+                <div class="mockup-boxes">
+                  <span class="m-box b1"></span>
+                  <span class="m-box b2"></span>
+                  <span class="m-box b3" [style.background-color]="hexColorActual"></span>
+                </div>
+              </div>
+              <div class="tema-info-txt">
+                <span class="t-nombre">Oscuro</span>
+                @if (acc.temaActual() === 'dark') { <span class="t-check">✓</span> }
+              </div>
+            </button>
+
+            <!-- Tarjeta Tema Claro -->
+            <button type="button" 
+                    class="card-preview-tema" 
+                    [class.activo]="acc.temaActual() === 'light'"
+                    (click)="seleccionarTema('light')">
+              <div class="tema-mockup light-mode-mockup">
+                <div class="mockup-bar header-mock-light"></div>
+                <div class="mockup-boxes">
+                  <span class="m-box bl1"></span>
+                  <span class="m-box bl2"></span>
+                  <span class="m-box bl3" [style.background-color]="hexColorActual"></span>
+                </div>
+              </div>
+              <div class="tema-info-txt">
+                <span class="t-nombre">Claro</span>
+                @if (acc.temaActual() === 'light') { <span class="t-check">✓</span> }
+              </div>
+            </button>
+          </div>
+
+          <!-- SECCIÓN: CUENTA -->
+          <div class="seccion-grupo-ajustes">
+            <div class="seccion-titulo-ajustes">
+              <span class="barra-decorativa"></span>
+              <h3>{{ acc.t('ajustes.cuenta') }}</h3>
+            </div>
+
+            <div class="ajustes-lista-items">
+              <!-- Datos Personales -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('DATOS')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.datos') }}</span>
+                    <span class="row-sub">{{ auth.usuario()?.nombre || auth.usuario()?.email }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Seguridad y Contraseña -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('PASSWORD')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.seguridad') }}</span>
+                    <span class="row-sub">Cambiar contraseña</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Suscripción & Pagos -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="abrirSuscripcion()">
+                <div class="row-left">
+                  <div class="row-icono-box star-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.suscripcion') }}</span>
+                    <span class="row-sub">Ver planes y boletas</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: PREFERENCIAS (DISEÑO EXACTO AL MODELO) -->
+          <div class="seccion-grupo-ajustes">
+            <div class="seccion-titulo-ajustes">
+              <span class="barra-decorativa"></span>
+              <h3>{{ acc.t('ajustes.preferencias') }}</h3>
+            </div>
+
+            <div class="ajustes-lista-items">
+              <!-- Tema Visual -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('TEMA')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="5"></circle>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.tema') }}</span>
+                    <span class="row-sub">{{ acc.temaActual() === 'dark' ? 'Modo Oscuro 🌙' : 'Modo Claro ☀️' }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Color de Resaltado -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('COLOR')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"></path>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.colorAcento') }}</span>
+                    <span class="row-sub d-flex align-center gap-1">
+                      <span class="mini-muestra-color" [style.background-color]="hexColorActual"></span>
+                      {{ nombreColorActual }}
+                    </span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Colores Cuadros -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('COLOR_CUADROS')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="3" y1="9" x2="21" y2="9"></line>
+                      <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.colorCuadros') }}</span>
+                    <span class="row-sub">{{ nombreColorCuadrosActual }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Tamaño de Fuente -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('FUENTE')">
+                <div class="row-left">
+                  <div class="row-icono-box font-icon-tag">
+                    <span class="a-symbol">A</span>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.fuente') }}</span>
+                    <span class="row-sub">{{ nombreTamanoActual }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Unidades (Regla/Ruler como en la imagen) -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('UNIDADES')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"></path>
+                      <path d="m14.5 3.5 2 2"></path>
+                      <path d="m11.5 6.5 2 2"></path>
+                      <path d="m8.5 9.5 2 2"></path>
+                      <path d="m5.5 12.5 2 2"></path>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.unidades') }}</span>
+                    <span class="row-sub">{{ acc.unidadPeso() === 'kg' ? 'Kilogramos (kg)' : 'Libras (lbs)' }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <!-- Idioma (Bandera como en la imagen) -->
+              <button class="ajuste-row-item btn-touch-accessible" (click)="irA('IDIOMA')">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                      <line x1="4" y1="22" x2="4" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.idioma') }}</span>
+                    <span class="row-sub">{{ nombreIdiomaActual }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: INFORMACIÓN Y LEGAL -->
+          <div class="seccion-grupo-ajustes">
+            <div class="seccion-titulo-ajustes">
+              <span class="barra-decorativa"></span>
+              <h3>{{ acc.t('ajustes.legal') }}</h3>
+            </div>
+
+            <div class="ajustes-lista-items">
+              <button class="ajuste-row-item btn-touch-accessible" (click)="abrirTerminos()">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.terminos') }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+
+              <button class="ajuste-row-item btn-touch-accessible" (click)="abrirPoliticas()">
+                <div class="row-left">
+                  <div class="row-icono-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo">{{ acc.t('ajustes.privacidad') }}</span>
+                  </div>
+                </div>
+                <span class="row-chevron">›</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: SESIÓN -->
+          <div class="seccion-grupo-ajustes">
+            <div class="ajustes-lista-items">
+              <button class="ajuste-row-item btn-touch-accessible item-cerrar-sesion" (click)="cerrarSesion()">
+                <div class="row-left">
+                  <div class="row-icono-box logout-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                  </div>
+                  <div class="row-textos">
+                    <span class="row-titulo text-danger">{{ acc.t('ajustes.cerrarSesion') }}</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+        }
+
+        <!-- ============================================== -->
+        <!-- 2. SUB-PANTALLA: IDIOMA                        -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'IDIOMA') {
+          <div class="subpantalla-container animate-fade-in">
+            <div class="sub-guia-txt">Selecciona el idioma de interfaz y contenidos:</div>
+            
+            <div class="ajustes-lista-items">
+              @for (idioma of acc.idiomasDisponibles; track idioma.codigo) {
+                <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                        [class.activo]="acc.idiomaActual() === idioma.codigo"
+                        (click)="seleccionarIdioma(idioma.codigo)">
+                  <div class="row-left">
+                    <span class="emoji-bandera">{{ idioma.bandera }}</span>
+                    <div class="row-textos">
+                      <span class="row-titulo">{{ idioma.nombre }}</span>
+                      <span class="row-sub">{{ idioma.nombreNativo }}</span>
+                    </div>
+                  </div>
+                  <div class="row-right">
+                    <span class="codigo-chip">{{ idioma.codigo.toUpperCase() }}</span>
+                    @if (acc.idiomaActual() === idioma.codigo) {
+                      <span class="check-activo-verde">✓</span>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 3. SUB-PANTALLA: COLOR DE RESALTADO            -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'COLOR') {
+          <div class="subpantalla-container animate-fade-in">
+            <div class="sub-guia-txt">Personaliza el color de contornos, sombreados, botones y estados activos:</div>
+
+            <div class="grid-colores-ajustes">
+              @for (color of acc.coloresAcento; track color.id) {
+                <button type="button" 
+                        class="card-color-opcion btn-touch-accessible" 
+                        [class.activo]="acc.colorAcento() === color.id"
+                        (click)="seleccionarColor(color.id)">
+                  <span class="color-circulo-preview" [style.background-color]="color.colorHex"></span>
+                  <div class="color-textos">
+                    <span class="color-nom">{{ color.nombre }}</span>
+                    <span class="color-hex">{{ color.colorHex }}</span>
+                  </div>
+                  @if (acc.colorAcento() === color.id) {
+                    <span class="check-activo-verde">✓</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 3.5 SUB-PANTALLA: COLOR CUADROS                -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'COLOR_CUADROS') {
+          <div class="subpantalla-container animate-fade-in">
+            <div class="sub-guia-txt">Personaliza el color de fondo de las tarjetas, cuadros de ejercicios y menús:</div>
+
+            <div class="grid-colores-ajustes">
+              @for (color of acc.coloresCuadros; track color.id) {
+                <button type="button" 
+                        class="card-color-opcion btn-touch-accessible" 
+                        [class.activo]="acc.colorCuadros() === color.id"
+                        (click)="seleccionarColorCuadros(color.id)">
+                  <span class="color-circulo-preview" [style.background-color]="acc.temaActual() === 'dark' ? color.bgOscuro : color.bgClaro"></span>
+                  <div class="color-textos">
+                    <span class="color-nom">{{ color.nombre }}</span>
+                  </div>
+                  @if (acc.colorCuadros() === color.id) {
+                    <span class="check-activo-verde">✓</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 4. SUB-PANTALLA: UNIDADES (KG / LBS)           -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'UNIDADES') {
+          <div class="subpantalla-container animate-fade-in">
+            <div class="sub-guia-txt">Elige la unidad de medida para el registro de cargas y peso corporal:</div>
+
+            <div class="ajustes-lista-items">
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.unidadPeso() === 'kg'"
+                      (click)="seleccionarUnidad('kg')">
+                <div class="row-left">
+                  <div class="row-icono-box">🏋️</div>
+                  <div class="row-textos">
+                    <span class="row-titulo">Kilogramos (kg)</span>
+                    <span class="row-sub">Sistema métrico internacional</span>
+                  </div>
+                </div>
+                @if (acc.unidadPeso() === 'kg') {
+                  <span class="check-activo-verde">✓</span>
+                }
+              </button>
+
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.unidadPeso() === 'lbs'"
+                      (click)="seleccionarUnidad('lbs')">
+                <div class="row-left">
+                  <div class="row-icono-box">🇺🇸</div>
+                  <div class="row-textos">
+                    <span class="row-titulo">Libras (lbs)</span>
+                    <span class="row-sub">Sistema imperial (1 kg ≈ 2.205 lbs)</span>
+                  </div>
+                </div>
+                @if (acc.unidadPeso() === 'lbs') {
+                  <span class="check-activo-verde">✓</span>
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 5. SUB-PANTALLA: TAMAÑO DE FUENTE              -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'FUENTE') {
+          <div class="subpantalla-container animate-fade-in">
+            <div class="sub-guia-txt">Ajusta la escala tipográfica de textos, botones y encabezados:</div>
+
+            <div class="ajustes-lista-items">
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.tamanoFuente() === 'pequeno'"
+                      (click)="seleccionarFuente('pequeno')">
+                <div class="row-left">
+                  <span class="preview-tag-a f-sm">A-</span>
+                  <div class="row-textos">
+                    <span class="row-titulo">Pequeño</span>
+                    <span class="row-sub">Escala compacta al 88%</span>
+                  </div>
+                </div>
+                @if (acc.tamanoFuente() === 'pequeno') { <span class="check-activo-verde">✓</span> }
+              </button>
+
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.tamanoFuente() === 'normal'"
+                      (click)="seleccionarFuente('normal')">
+                <div class="row-left">
+                  <span class="preview-tag-a f-md">A</span>
+                  <div class="row-textos">
+                    <span class="row-titulo">Normal</span>
+                    <span class="row-sub">Escala estándar al 100%</span>
+                  </div>
+                </div>
+                @if (acc.tamanoFuente() === 'normal') { <span class="check-activo-verde">✓</span> }
+              </button>
+
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.tamanoFuente() === 'grande'"
+                      (click)="seleccionarFuente('grande')">
+                <div class="row-left">
+                  <span class="preview-tag-a f-lg">A+</span>
+                  <div class="row-textos">
+                    <span class="row-titulo">Grande</span>
+                    <span class="row-sub">Escala aumentada al 115%</span>
+                  </div>
+                </div>
+                @if (acc.tamanoFuente() === 'grande') { <span class="check-activo-verde">✓</span> }
+              </button>
+
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.tamanoFuente() === 'extragrande'"
+                      (click)="seleccionarFuente('extragrande')">
+                <div class="row-left">
+                  <span class="preview-tag-a f-xl">A++</span>
+                  <div class="row-textos">
+                    <span class="row-titulo">Extra Grande</span>
+                    <span class="row-sub">Máxima accesibilidad visual al 130%</span>
+                  </div>
+                </div>
+                @if (acc.tamanoFuente() === 'extragrande') { <span class="check-activo-verde">✓</span> }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 6. SUB-PANTALLA: TEMA VISUAL                   -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'TEMA') {
+          <div class="subpantalla-container animate-fade-in">
+            <div class="sub-guia-txt">Elige el tema de contraste y luminosidad:</div>
+
+            <div class="ajustes-lista-items">
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.temaActual() === 'dark'"
+                      (click)="seleccionarTema('dark')">
+                <div class="row-left">
+                  <div class="row-icono-box">🌙</div>
+                  <div class="row-textos">
+                    <span class="row-titulo">Modo Oscuro</span>
+                    <span class="row-sub">Fondo carbón mate de alta comodidad nocturna</span>
+                  </div>
+                </div>
+                @if (acc.temaActual() === 'dark') { <span class="check-activo-verde">✓</span> }
+              </button>
+
+              <button class="ajuste-row-item item-seleccionable btn-touch-accessible" 
+                      [class.activo]="acc.temaActual() === 'light'"
+                      (click)="seleccionarTema('light')">
+                <div class="row-left">
+                  <div class="row-icono-box">☀️</div>
+                  <div class="row-textos">
+                    <span class="row-titulo">Modo Claro</span>
+                    <span class="row-sub">Fondo blanco puro y gris suave de alto contraste</span>
+                  </div>
+                </div>
+                @if (acc.temaActual() === 'light') { <span class="check-activo-verde">✓</span> }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 7. SUB-PANTALLA: DATOS PERSONALES              -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'DATOS') {
+          <div class="subpantalla-container animate-fade-in">
+            <form [formGroup]="perfilForm" (ngSubmit)="guardarDatos()" class="form-ajustes-sub">
+              <div class="form-campo">
+                <label for="aj-nombre">Nombre Completo</label>
+                <input type="text" id="aj-nombre" formControlName="nombre" class="input-ajuste" placeholder="Tu nombre">
+              </div>
+
+              <div class="form-campo">
+                <label>Preferencia Corporal (Anatomía de Guías)</label>
+                <div class="genero-chips-grid">
+                  <button type="button" 
+                          class="chip-genero btn-touch-accessible" 
+                          [class.activo]="perfilForm.controls.genero.value === 'HOMBRE'"
+                          (click)="seleccionarGeneroForm('HOMBRE')">
+                    👨 Hombre (Guías masculinas)
+                  </button>
+                  <button type="button" 
+                          class="chip-genero btn-touch-accessible" 
+                          [class.activo]="perfilForm.controls.genero.value === 'MUJER'"
+                          (click)="seleccionarGeneroForm('MUJER')">
+                    👩 Mujer (Guías femeninas)
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-guardar-ajuste btn-touch-accessible" [disabled]="perfilForm.invalid">
+                Guardar Cambios
+              </button>
+            </form>
+          </div>
+        }
+
+        <!-- ============================================== -->
+        <!-- 8. SUB-PANTALLA: SEGURIDAD Y CONTRASEÑA        -->
+        <!-- ============================================== -->
+        @if (modal.subPantalla() === 'PASSWORD') {
+          <div class="subpantalla-container animate-fade-in">
+            <form [formGroup]="passwordForm" (ngSubmit)="guardarPassword()" class="form-ajustes-sub">
+              <div class="form-campo">
+                <label for="aj-pass-act">Contraseña Actual</label>
+                <input type="password" id="aj-pass-act" formControlName="passwordActual" class="input-ajuste" placeholder="••••••••">
+              </div>
+
+              <div class="form-campo">
+                <label for="aj-pass-new">Nueva Contraseña (mínimo 6 caracteres)</label>
+                <input type="password" id="aj-pass-new" formControlName="nuevaPassword" class="input-ajuste" placeholder="••••••••">
+              </div>
+
+              <button type="submit" class="btn-guardar-ajuste btn-touch-accessible" [disabled]="passwordForm.invalid">
+                Actualizar Contraseña
+              </button>
+            </form>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,205 @@
+<div class="academia-container">
+  <!-- Cabecera de la Academia -->
+  <div class="academia-header animate-fade-in">
+    <h1>🔬 Guía Científica del Entrenamiento</h1>
+    <p>Aprende las bases de la biomecánica, volumen, hipertrofia y nutrición respaldadas por estudios científicos reales.</p>
+  </div>
+
+  <!-- Banner de Estado de Suscripción / Recompensas -->
+  <div class="estado-banner animate-fade-in" [class.premium-activo]="auth.esPremium()">
+    @if (auth.esPremium()) {
+      <div class="banner-content">
+        <div class="banner-icon">💎</div>
+        <div class="banner-info">
+          <h2>Membresía Premium Activa</h2>
+          @if (auth.premiumExpiresAt()) {
+            <p>¡Felicidades! Has aprobado el Reto Científico y desbloqueado tu pase de regalo de 7 días. Tu acceso expira el:</p>
+            <strong class="exp-date">{{ obtenerFechaFormateadaExpiracion() }} ({{ obtenerDiasRestantesPremium() }} días restantes)</strong>
+          } @else {
+            <p>Dispones de acceso completo e ilimitado a todas las guías, cronómetros y videos demostrativos avanzados del gimnasio.</p>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="banner-content">
+        <div class="banner-icon">🎁</div>
+        <div class="banner-info">
+          <h2>¡Desbloquea 7 días de PREMIUM Gratis!</h2>
+          <p>Estudia la información de la <b>Sección Básica</b> y rinde el Reto Científico de 1 minuto. Al responder correctamente <b>4 de 5 preguntas (80%+)</b>, se activará tu acceso Premium de regalo inmediatamente.</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Contenedor del Examen del Módulo 1 (Reto Científico) -->
+  @if (!auth.esPremium() || !examenAprobado()) {
+    <div class="modulo-examen-banner animate-fade-in">
+      <div class="exam-header-meta">
+        <span class="exam-icon">📝</span>
+        <div>
+          <h3>Desafío Científico: Reto de 1 Minuto</h3>
+          <p>Demuestra que has entendido los conceptos básicos del calentamiento, rango de movimiento (ROM) y descanso para ganar tu membresía gratis.</p>
+        </div>
+      </div>
+      <div class="exam-actions">
+        <button class="btn-iniciar-examen" (click)="abrirExamen()">Rendir Reto Científico</button>
+      </div>
+    </div>
+  } @else {
+    <div class="modulo-examen-banner aprobado animate-fade-in">
+      <div class="exam-header-meta">
+        <span class="exam-icon">🏆</span>
+        <div>
+          <h3>Reto Científico Aprobado</h3>
+          <p>Felicidades, has certificado tu aprendizaje y desbloqueado la guía científica avanzada completa.</p>
+        </div>
+      </div>
+      <div class="exam-actions">
+        <span class="badge-aprobado-check green-glow">✓ DESAFÍO COMPLETO</span>
+      </div>
+    </div>
+  }
+
+  <!-- Temario y Contenido Académico Completo en Pantalla -->
+  <div class="academia-temario-completo animate-fade-in">
+    @for (curso of cursos; track curso.id) {
+      @let bloqueado = curso.esPremium && !auth.esPremium();
+      <div class="modulo-textbook-card" [class.locked]="bloqueado">
+        
+        <!-- Encabezado del Módulo -->
+        <div class="modulo-textbook-header">
+          <div class="modulo-header-left">
+            <span class="modulo-icono">{{ curso.icono }}</span>
+            <div class="modulo-titulo-wrapper">
+              <h3>{{ curso.titulo }}</h3>
+              @if (curso.esPremium) {
+                <span class="badge premium-badge">PREMIUM</span>
+              } @else {
+                <span class="badge free-badge">GRATIS</span>
+              }
+            </div>
+          </div>
+          <p class="modulo-intro-desc">{{ curso.descripcion }}</p>
+        </div>
+
+        <!-- Contenido detallado visible en pantalla (o bloqueado por overlay) -->
+        <div class="modulo-textbook-body-wrapper">
+          @if (bloqueado) {
+            <div class="locked-overlay-textbook">
+              <span class="lock-icon-textbook">🔒</span>
+              <h3>Sección Científica Avanzada Bloqueada</h3>
+              <p>Completa y aprueba el Reto Científico de la sección básica para desbloquear y estudiar esta información técnica.</p>
+            </div>
+          }
+          
+          <div class="modulo-textbook-content" [innerHTML]="curso.contenidoDetallado"></div>
+        </div>
+
+      </div>
+    }
+  </div>
+
+  <!-- Simulación / Control de pruebas (Admin / Tester) -->
+  <div class="controles-prueba animate-fade-in">
+    <h3>⚙️ Zona de Pruebas de Desarrollo</h3>
+    <p>Utiliza este botón para restablecer el progreso de la guía y los retos, regresando al plan gratuito para volver a simular el flujo de desbloqueo.</p>
+    <button class="btn-reiniciar" (click)="reiniciarProgreso()">Restablecer Progreso y Plan Gratis</button>
+  </div>
+
+  <!-- MODAL DE EXAMEN (Cisco Networking Academy Style) -->
+  @if (examenActivo()) {
+    <div class="modal-overlay animate-fade-in">
+      <div class="modal-exam-content animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="cisco-navbar">
+          <span class="cisco-logo">Science Hub | Reto de Evidencia Científica</span>
+          <button class="cisco-btn-close" (click)="cerrarExamen()">&times;</button>
+        </div>
+        
+        <div class="exam-header-cisco">
+          <h2>Reto de Conocimientos: Pilares Básicos del Gym</h2>
+          <p class="instructions-cisco">
+            <b>Instrucciones:</b> Responde las siguientes 5 preguntas basadas en la evidencia científica explicada en la guía. Requiere un mínimo de <b>80% (4 de 5 correctas)</b> para aprobar y desbloquear la recompensa Premium.
+          </p>
+        </div>
+
+        <div class="exam-questions-body">
+          @if (!examenResultado()?.enviado) {
+            @for (preg of preguntasBasicas; track preg.id) {
+              <div class="pregunta-box">
+                <h4>{{ preg.pregunta }}</h4>
+                <div class="opciones-lista">
+                  @for (opc of preg.opciones; track optIdx; let optIdx = $index) {
+                    <label class="opcion-label">
+                      <input type="radio" 
+                             [name]="preg.id" 
+                             [checked]="respuestasUsuario()[preg.id] === optIdx"
+                             (change)="seleccionarRespuesta(preg.id, optIdx)">
+                      <span class="opc-text">{{ opc }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <!-- Resultados del examen -->
+            <div class="resultados-panel" [class.aprobado]="examenResultado()?.aprobado">
+              <div class="resultado-icon">
+                {{ examenResultado()?.aprobado ? '🏆' : '❌' }}
+              </div>
+              <h3>{{ examenResultado()?.aprobado ? '¡RETO SUPERADO CON ÉXITO!' : 'RETO NO APTO' }}</h3>
+              
+              <div class="tabla-nota">
+                <div class="nota-row">
+                  <span>Respuestas Correctas:</span>
+                  <strong>{{ examenResultado()?.nota }} / {{ examenResultado()?.total }}</strong>
+                </div>
+                <div class="nota-row">
+                  <span>Calificación Final:</span>
+                  <strong class="porcentaje">{{ (examenResultado()?.nota || 0) * 20 }}%</strong>
+                </div>
+                <div class="nota-row">
+                  <span>Mínimo para aprobar:</span>
+                  <strong>80% (4 de 5)</strong>
+                </div>
+              </div>
+
+              @if (examenResultado()?.aprobado) {
+                <p class="resultado-desc-txt">
+                  ¡Excelente! Has demostrado dominar los pilares básicos del entrenamiento deportivo. Tu pase Premium gratuito por 7 días ha sido activado con éxito. Ahora puedes acceder a toda la información avanzada de hipertrofia, nutrición y biomecánica directamente en pantalla.
+                </p>
+              } @else {
+                <p class="resultado-desc-txt failure">
+                  No has alcanzado el puntaje requerido de 80%. Te sugerimos repasar detenidamente los conceptos de la guía e intentarlo nuevamente para asegurar tu aprendizaje. ¡Tú puedes lograrlo!
+                </p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="exam-footer-cisco">
+          @if (!examenResultado()?.enviado) {
+            <span class="progress-status-cisco">
+              Respondidas: {{ respondidasCount() }} de 5
+            </span>
+            <div class="exam-btns">
+              <button class="btn-cancel-exam" (click)="cerrarExamen()">Cancelar</button>
+              <button class="btn-submit-exam" 
+                      [disabled]="respondidasCount() < 5"
+                      (click)="enviarExamen()">
+                Enviar Respuestas
+              </button>
+            </div>
+          } @else {
+            <div class="exam-btns single-btn">
+              @if (examenResultado()?.aprobado) {
+                <button class="btn-finish-exam" (click)="cerrarExamen()">Finalizar y Ver Contenido Avanzado</button>
+              } @else {
+                <button class="btn-retry-exam" (click)="abrirExamen()">Intentar de Nuevo (Reintentar)</button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

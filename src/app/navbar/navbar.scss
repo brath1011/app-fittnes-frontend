@@ -1,0 +1,479 @@
+.navbar-moderno {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  height: 64px;
+  background-color: var(--bg-surface, #ffffff);
+  border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  @media (max-width: 992px) {
+    padding: 0 1.25rem;
+    height: 58px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 0 0.85rem;
+    height: 54px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--text-primary, #111111);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    flex-shrink: 0;
+
+    .logo-texto {
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 1.15rem;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  .enlaces {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+
+    @media (max-width: 900px) {
+      display: none;
+    }
+
+    li {
+      position: relative;
+
+      a {
+        text-decoration: none;
+        color: var(--text-secondary, #636366);
+        font-weight: 600;
+        font-size: 0.92rem;
+        padding: 6px 12px;
+        position: relative;
+        outline: none !important;
+        border: none !important;
+        border-radius: 8px;
+        transition: color 0.2s ease, background-color 0.2s ease;
+
+        &::after {
+          content: '';
+          position: absolute;
+          width: 0;
+          height: 2.5px;
+          bottom: -2px;
+          left: 50%;
+          background-color: var(--primary-color, #007aff);
+          box-shadow: 0 0 10px var(--primary-glow, rgba(0, 122, 255, 0.4));
+          transition: all 0.25s ease;
+          transform: translateX(-50%);
+          border-radius: 2px;
+        }
+
+        &:hover {
+          color: var(--text-primary, #ffffff);
+          background-color: rgba(255, 255, 255, 0.04);
+          &::after {
+            width: 75%;
+          }
+        }
+
+        &.activo {
+          color: var(--text-primary, #ffffff);
+          font-weight: 700;
+          &::after {
+            width: 75%;
+          }
+        }
+
+        &:focus {
+          outline: none !important;
+        }
+      }
+    }
+  }
+
+  .acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+
+    @media (max-width: 600px) {
+      gap: 0.4rem;
+    }
+
+    .buscador-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background-color: var(--bg-surface-elevated, #f5f5f5);
+      border: 1px solid var(--border-subtle, #e5e7eb);
+      border-radius: 100px;
+      padding: 5px 12px;
+      width: 170px;
+      transition: all 0.25s ease;
+
+      @media (max-width: 1100px) {
+        width: 130px;
+      }
+
+      @media (max-width: 768px) {
+        display: none;
+      }
+
+      &:hover {
+        border-color: var(--primary-color, #007aff);
+        box-shadow: 0 0 12px var(--primary-glow-subtle, rgba(0, 122, 255, 0.25));
+      }
+
+      &:focus-within {
+        width: 220px;
+        border-color: var(--primary-color, #007aff);
+        box-shadow: 0 0 16px var(--primary-glow, rgba(0, 122, 255, 0.4));
+      }
+
+      .lupa-icon {
+        font-size: 0.85rem;
+        margin-right: 6px;
+        color: var(--text-secondary, #707070);
+        pointer-events: none;
+      }
+
+      .input-buscar {
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.82rem;
+        width: 100%;
+        color: var(--text-primary, #111111);
+
+        &::placeholder {
+          color: var(--text-muted, #707070);
+          font-weight: 500;
+        }
+      }
+    }
+
+    .dropdown-usuario {
+      position: relative;
+      cursor: pointer;
+
+      .btn-usuario-dropdown {
+        background: var(--bg-surface-elevated, #f5f5f5);
+        border: 1px solid var(--border-subtle, #e5e7eb);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary, #111111);
+        padding: 5px 12px;
+        border-radius: 100px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        @media (max-width: 600px) {
+          padding: 6px 10px;
+        }
+
+        &:hover {
+          background-color: var(--bg-surface-hover, #ebebeb);
+          border-color: var(--primary-color, #007aff);
+
+          .icono-tuerca-nav {
+            transform: rotate(45deg);
+            color: var(--primary-color, #007aff);
+          }
+        }
+
+        .icono-tuerca-nav {
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+          color: var(--text-secondary, #a1a1aa);
+        }
+
+        .usuario-email {
+          max-width: 110px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+
+          @media (max-width: 768px) {
+            display: none;
+          }
+        }
+
+        .flechita {
+          font-size: 0.75rem;
+          transition: transform 0.2s ease;
+          &.abierto {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: var(--bg-surface, #ffffff);
+        border: 1px solid var(--border-subtle, #e5e7eb);
+        border-radius: 12px;
+        box-shadow: var(--shadow-elevated, 0 10px 30px rgba(0, 0, 0, 0.15));
+        width: 190px;
+        z-index: 1000;
+        overflow: hidden;
+        animation: fadeIn 0.15s ease-out;
+
+        .dropdown-item {
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 10px 16px;
+          text-decoration: none;
+          color: var(--text-primary, #334155);
+          font-size: 0.85rem;
+          font-weight: 500;
+          background: none;
+          border: none;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: var(--bg-surface-hover, #f1f5f9);
+            color: var(--text-primary, #111111);
+          }
+
+          &.premium-item-menu {
+            color: var(--primary-color, #007aff);
+            font-weight: 700;
+            border-top: 1px solid var(--border-subtle, #e5e7eb);
+            border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+
+            &:hover {
+              background-color: rgba(0, 122, 255, 0.1);
+            }
+          }
+
+          &.btn-salir {
+            color: #ef4444;
+            &:hover {
+              background-color: rgba(239, 68, 68, 0.1);
+            }
+          }
+        }
+      }
+    }
+
+    .btn-login {
+      text-decoration: none;
+      background-color: var(--primary-color, #007aff);
+      color: #ffffff;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+
+      @media (max-width: 600px) {
+        padding: 5px 10px;
+        font-size: 0.78rem;
+      }
+
+      &:hover {
+        background-color: var(--primary-hover, #0062cc);
+        box-shadow: 0 2px 10px var(--primary-glow, rgba(0, 122, 255, 0.4));
+      }
+    }
+  }
+
+  .barra-accesibilidad-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background-color: var(--bg-surface-elevated, #f5f5f5);
+    padding: 3px 6px;
+    border-radius: 100px;
+    border: 1px solid var(--border-subtle, #e5e7eb);
+
+    @media (max-width: 640px) {
+      display: none;
+    }
+
+    .dropdown-idioma, .dropdown-fuente {
+      position: relative;
+
+      .btn-idioma, .btn-fuente-dropdown {
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 7px;
+        border-radius: 14px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--text-primary, inherit);
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: var(--bg-surface-hover, rgba(0, 0, 0, 0.08));
+        }
+
+        .codigo-idioma, .icono-fuente-tag {
+          font-weight: 800;
+          letter-spacing: 0.02em;
+        }
+
+        .flechita-idioma, .flechita-fuente {
+          font-size: 0.7rem;
+          transition: transform 0.2s;
+          &.abierto {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .dropdown-menu-idioma, .dropdown-menu-fuente {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: var(--bg-surface, #ffffff);
+        border: 1px solid var(--border-subtle, #e5e7eb);
+        border-radius: 12px;
+        box-shadow: var(--shadow-elevated, 0 10px 25px rgba(0, 0, 0, 0.15));
+        padding: 6px;
+        min-width: 170px;
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        animation: fadeIn 0.15s ease-out;
+
+        .item-idioma, .item-fuente {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 10px;
+          border: none;
+          background: transparent;
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
+          text-align: left;
+          color: var(--text-primary, #333333);
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: var(--bg-surface-hover, #f1f5f9);
+          }
+
+          &.activo {
+            background-color: var(--bg-surface-hover, #e2e8f0);
+            font-weight: 700;
+          }
+
+          .codigo-badge {
+            font-weight: 800;
+            font-size: 0.75rem;
+            background: var(--bg-surface-elevated, #e2e8f0);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-primary, #1e293b);
+          }
+
+          .info-item-idioma {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+
+            .nombre-idioma {
+              font-size: 0.8rem;
+              font-weight: 600;
+            }
+
+            .nativo-idioma {
+              font-size: 0.7rem;
+              color: var(--text-secondary, #64748b);
+            }
+          }
+
+          .check-activo {
+            color: var(--primary-color, #007aff);
+            font-weight: 800;
+            font-size: 0.85rem;
+          }
+
+          .preview-txt {
+            font-weight: 800;
+            color: var(--text-primary, #1e293b);
+            width: 24px;
+            text-align: center;
+
+            &.font-sm { font-size: 0.75rem; }
+            &.font-md { font-size: 0.88rem; }
+            &.font-lg { font-size: 1.05rem; }
+            &.font-xl { font-size: 1.25rem; }
+          }
+
+          .lbl-fuente {
+            font-size: 0.8rem;
+            flex: 1;
+          }
+        }
+
+        .titulo-menu-fuente {
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: var(--text-secondary, #64748b);
+          padding: 4px 8px;
+          border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+          margin-bottom: 2px;
+        }
+      }
+    }
+
+    .btn-tema-toggle {
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 6px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: var(--bg-surface-hover, rgba(0, 0, 0, 0.08));
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+html.theme-dark {
+  .navbar-moderno {
+    background-color: rgba(18, 18, 20, 0.95);
+    border-bottom-color: var(--border-subtle, #27272a);
+  }
+}

@@ -1,0 +1,587 @@
+<div class="perfil-usuario-container">
+  
+  <!-- ============================================================== -->
+  <!-- 1. TARJETA DE IDENTIDAD DEL USUARIO (MI NOMBRE Y PERFIL)        -->
+  <!-- ============================================================== -->
+  <div class="perfil-hero-card">
+    <div class="perfil-hero-avatar-wrap">
+      <div class="avatar-iniciales">
+        {{ inicialesUsuario() }}
+      </div>
+      <span class="badge-online-dot" title="Usuario Activo"></span>
+    </div>
+
+    <div class="perfil-hero-info">
+      <div class="fila-nombre-tags">
+        <h1 class="hero-nombre">{{ nombreUsuario() }}</h1>
+        <span class="badge-plan" [class.badge-pro]="authService.plan() === 'PRO'">
+          {{ authService.plan() === 'PRO' ? '⭐ MIEMBRO PRO' : '⚡ PLAN ATLETA' }}
+        </span>
+      </div>
+      <p class="hero-email">{{ emailUsuario() }}</p>
+
+      <div class="hero-meta-pills">
+        <span class="meta-pill">
+          <span>🧬</span> {{ perfilForm.controls.genero.value === 'MUJER' ? 'Guías Femeninas' : 'Guías Masculinas' }}
+        </span>
+        <span class="meta-pill">
+          <span>⚖️</span> Unidad: {{ acc.unidadPeso().toUpperCase() }}
+        </span>
+        <span class="meta-pill">
+          <span>🌐</span> {{ acc.idiomaActual().toUpperCase() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="perfil-hero-acciones">
+      <button class="btn-ajustes-directo btn-touch-accessible" (click)="abrirAjustes('PRINCIPAL')" title="Abrir Ajustes">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tuerca-icon">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>Ajustes</span>
+      </button>
+    </div>
+  </div>
+
+  @if (mensaje()) {
+    <div class="alerta alerta-exito animate-slide-down">
+      <span>✓</span> {{ mensaje() }}
+    </div>
+  }
+
+  @if (mensajeError()) {
+    <div class="alerta alerta-error animate-slide-down">
+      <span>⚠️</span> {{ mensajeError() }}
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- 2. BARRA DE BOTONES DE SECCIÓN DE PERFIL                       -->
+  <!-- ============================================================== -->
+  <div class="perfil-pestanas-nav">
+    <button class="pestana-nav-btn btn-touch-accessible" [class.activa]="pestanaActiva() === 'DASHBOARD'" (click)="cambiarPestana('DASHBOARD')">
+      📊 Mi Progreso & Métricas
+    </button>
+    <button class="pestana-nav-btn btn-touch-accessible" [class.activa]="pestanaActiva() === 'PROGRESO'" (click)="cambiarPestana('PROGRESO')">
+      📷 Fotos y Peso
+    </button>
+    <button class="pestana-nav-btn btn-touch-accessible" [class.activa]="pestanaActiva() === 'HISTORIAL'" (click)="cambiarPestana('HISTORIAL')">
+      📜 Historial
+    </button>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 3. VISTA: DASHBOARD MI PROGRESO Y MÉTRICAS INTELIGENTES        -->
+  <!-- ============================================================== -->
+  @if (pestanaActiva() === 'DASHBOARD') {
+    <div class="pantalla-dashboard animate-fade-in">
+      
+      <!-- GRID DE 6 KPI CARDS -->
+      <div class="user-kpi-grid">
+        <div class="user-kpi-card kpi-sesiones">
+          <div class="ukpi-icon">🏋️</div>
+          <div class="ukpi-info">
+            <span class="ukpi-valor">{{ totalSesiones() }}</span>
+            <span class="ukpi-label">Sesiones</span>
+            <span class="ukpi-sub">entrenamientos completados</span>
+          </div>
+        </div>
+
+        <div class="user-kpi-card kpi-minutos">
+          <div class="ukpi-icon">⏱️</div>
+          <div class="ukpi-info">
+            <span class="ukpi-valor">{{ totalHoras() }} <small>hrs</small></span>
+            <span class="ukpi-label">Tiempo Total</span>
+            <span class="ukpi-sub">{{ totalMinutos() }} minutos acumulados</span>
+          </div>
+        </div>
+
+        <div class="user-kpi-card kpi-calorias">
+          <div class="ukpi-icon">🔥</div>
+          <div class="ukpi-info">
+            <span class="ukpi-valor">{{ totalCalorias() }} <small>kcal</small></span>
+            <span class="ukpi-label">Calorías</span>
+            <span class="ukpi-sub">energía quemada estimada</span>
+          </div>
+        </div>
+
+        <div class="user-kpi-card kpi-frecuencia">
+          <div class="ukpi-icon">📅</div>
+          <div class="ukpi-info">
+            <span class="ukpi-valor">{{ frecuenciaSemanal() }}</span>
+            <span class="ukpi-label">Sesiones / sem</span>
+            <span class="ukpi-sub">constancia semanal</span>
+          </div>
+        </div>
+
+        <div class="user-kpi-card kpi-volumen">
+          <div class="ukpi-icon">📊</div>
+          <div class="ukpi-info">
+            <span class="ukpi-valor">{{ volumenTotalEstimado() }} <small>{{ acc.unidadPeso() }}</small></span>
+            <span class="ukpi-label">Volumen Total</span>
+            <span class="ukpi-sub">carga en rutinas activas</span>
+          </div>
+        </div>
+
+        <div class="user-kpi-card kpi-records">
+          <div class="ukpi-icon">⚡</div>
+          <div class="ukpi-info">
+            <span class="ukpi-valor">{{ sobrecargaProgresiva().length }}</span>
+            <span class="ukpi-label">Récords PRs</span>
+            <span class="ukpi-sub">ejercicios con peso máximo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: ANÁLISIS INTELIGENTE DE PESO Y TENDENCIA -->
+      <div class="perfil-seccion-caja dashboard-seccion">
+        <div class="seccion-header-flex">
+          <div>
+            <h2>⚖️ Diagnóstico & Evolución de Peso Corporal</h2>
+            <p class="dashboard-desc">Seguimiento de peso semanal para evaluar si has subido de peso, bajado o mantenido.</p>
+          </div>
+          <button class="btn-accion-rapida btn-touch-accessible" (click)="cambiarPestana('PROGRESO')">
+            + Registrar Peso
+          </button>
+        </div>
+
+        <!-- Banner de Diagnóstico Inteligente -->
+        <div class="banner-diagnostico" 
+             [class.diag-subio]="cambioPeso() !== null && cambioPeso()! > 0"
+             [class.diag-bajo]="cambioPeso() !== null && cambioPeso()! < 0"
+             [class.diag-igual]="cambioPeso() !== null && cambioPeso()! === 0">
+          <span class="diag-icon">
+            {{ cambioPeso() === null ? '💡' : (cambioPeso()! > 0 ? '📈' : (cambioPeso()! < 0 ? '📉' : '🎯')) }}
+          </span>
+          <div class="diag-texto">
+            <strong>Diagnóstico de Composición:</strong>
+            <p>{{ diagnosticoPeso() }}</p>
+          </div>
+        </div>
+
+        @if (ultimaMedida()?.recomendacion) {
+          <div class="banner-recomendacion animate-fade-in" style="margin-top: 15px; background: rgba(56, 189, 248, 0.1); border-left: 4px solid #38bdf8; padding: 16px; border-radius: 8px;">
+            <strong style="color: #38bdf8; display: block; margin-bottom: 5px;">🤖 Recomendación Inteligente (Basada en tu Meta):</strong>
+            <p style="margin: 0; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5;">{{ ultimaMedida()!.recomendacion }}</p>
+          </div>
+        }
+
+        @if (tendenciaPeso().length === 0) {
+          <div class="no-data-msg">
+            <span>📊</span>
+            <p>Aún no tienes registros de peso corporal. Ve a <strong>Fotos y Peso</strong> para comenzar a registrar tu evolución física.</p>
+          </div>
+        } @else {
+          <!-- Tarjetas de métricas de peso -->
+          <div class="peso-resumen-cards">
+            @if (pesoActual() !== null) {
+              <div class="peso-card peso-actual">
+                <span class="peso-lbl">Peso Actual</span>
+                <span class="peso-val">{{ pesoActual() }} {{ acc.unidadPeso() }}</span>
+                <span class="peso-sub-tag">Última medición</span>
+              </div>
+            }
+            @if (pesoPrimero() !== null) {
+              <div class="peso-card peso-inicial">
+                <span class="peso-lbl">Peso Inicial</span>
+                <span class="peso-val">{{ pesoPrimero() }} {{ acc.unidadPeso() }}</span>
+                <span class="peso-sub-tag">Primer registro</span>
+              </div>
+            }
+            @if (cambioPeso() !== null) {
+              <div class="peso-card" [class.peso-subio]="cambioPeso()! > 0" [class.peso-bajo]="cambioPeso()! < 0" [class.peso-igual]="cambioPeso()! === 0">
+                <span class="peso-lbl">Variación Neta</span>
+                <span class="peso-val">
+                  {{ cambioPeso()! > 0 ? '+' : '' }}{{ cambioPeso() }} {{ acc.unidadPeso() }}
+                  <small>({{ cambioPorcentaje()! > 0 ? '+' : '' }}{{ cambioPorcentaje() }}%)</small>
+                </span>
+                <span class="peso-sub-tag">
+                  {{ cambioPeso()! > 0 ? 'Subió de peso 📈' : (cambioPeso()! < 0 ? 'Bajó de peso 📉' : 'Mantenimiento ➡️') }}
+                </span>
+              </div>
+            }
+            @if (pesoMinimo() !== null && pesoMaximo() !== null) {
+              <div class="peso-card peso-rango">
+                <span class="peso-lbl">Rango Histórico</span>
+                <span class="peso-val">{{ pesoMinimo() }} - {{ pesoMaximo() }} <small>{{ acc.unidadPeso() }}</small></span>
+                <span class="peso-sub-tag">Mínimo / Máximo</span>
+              </div>
+            }
+          </div>
+
+          <!-- Gráfico visual de barras de peso corporal -->
+          <div class="peso-chart-contenedor">
+            <div class="chart-titulo-sub">Historial de Mediciones ({{ tendenciaPeso().length }} registros):</div>
+            <div class="peso-chart">
+              @for (punto of tendenciaPeso(); track (punto.fecha + '_' + $index)) {
+                <div class="peso-bar-item" [title]="punto.fecha + ': ' + punto.peso + ' ' + acc.unidadPeso()">
+                  <div class="peso-bar-columna">
+                    <span class="peso-bar-valor">{{ punto.peso }}</span>
+                    <div class="peso-bar" [style.height.%]="pesoMaximo() && pesoMaximo()! > 0 ? (punto.peso / pesoMaximo()! * 100) : 50"></div>
+                  </div>
+                  <span class="peso-bar-fecha">{{ punto.fecha | date:'dd/MM' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- SECCIÓN: SOBRECARGA PROGRESIVA & DASHBOARD DE FUERZA -->
+      <div class="perfil-seccion-caja dashboard-seccion sobrecarga-seccion-card">
+        <div class="seccion-header-flex">
+          <div>
+            <h2>📈 Dashboard de Sobrecarga Progresiva & Récords (PRs)</h2>
+            <p class="dashboard-desc">Filtra por grupo muscular y analiza tu progresión de fuerza, 1RM estimado y tonelaje por ejercicio.</p>
+          </div>
+        </div>
+
+        @if (ejerciciosCompletosProgreso().length === 0) {
+          <div class="no-data-msg">
+            <span>💪</span>
+            <p>Aún no tienes ejercicios con peso configurado. ¡Agrega tus cargas totales en el <strong>Planificador de Rutinas</strong> o <strong>Entrenamiento</strong> para desbloquear las métricas!</p>
+          </div>
+        } @else {
+          <!-- 1. FILTRO POR GRUPO MUSCULAR -->
+          <div class="filtros-sobrecarga-wrap">
+            <span class="filtro-lbl">Grupo Muscular:</span>
+            <div class="filtros-chips-scroll">
+              <button type="button" 
+                      class="chip-filtro-sc" 
+                      [class.activo]="filtroGrupoMuscular() === 'TODOS'" 
+                      (click)="seleccionarFiltroGrupo('TODOS')">
+                <span>🔥 Todos ({{ ejerciciosCompletosProgreso().length }})</span>
+              </button>
+              @for (grupo of gruposMuscularesDisponibles(); track grupo) {
+                <button type="button" 
+                        class="chip-filtro-sc" 
+                        [class.activo]="filtroGrupoMuscular() === grupo" 
+                        (click)="seleccionarFiltroGrupo(grupo)">
+                  <span>{{ grupo }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- 2. SELECTOR DE EJERCICIOS DEL GRUPO -->
+          <div class="selector-ejercicios-scroll">
+            @for (ej of ejerciciosFiltradosProgreso(); track (ej.nombre + '_' + $index)) {
+              <button type="button" 
+                      class="card-ejercicio-sc" 
+                      [class.seleccionado]="ejercicioActivoDetalle()?.nombre === ej.nombre"
+                      (click)="seleccionarEjercicioProgreso(ej.nombre)">
+                <div class="cej-top">
+                  <span class="cej-nombre">{{ ej.nombre }}</span>
+                  <span class="cej-peso">{{ ej.pesoMax }} <small>{{ acc.unidadPeso() }}</small></span>
+                </div>
+                <div class="cej-meta">
+                  <span class="cej-conf">{{ ej.series }}s × {{ ej.reps }}r</span>
+                  <span class="cej-badge-1rm">1RM: ~{{ ej.unRM }}{{ acc.unidadPeso() }}</span>
+                </div>
+              </button>
+            }
+          </div>
+
+          <!-- 3. SPOTLIGHT DEL EJERCICIO SELECCIONADO -->
+          @if (ejercicioActivoDetalle(); as ejActivo) {
+            <div class="spotlight-ejercicio-card animate-fade-in">
+              <div class="spotlight-header">
+                <div>
+                  <div class="spotlight-badges">
+                    <span class="badge-spotlight-grupo">{{ ejActivo.grupoMuscular }}</span>
+                    @if (ejActivo.subcategoria) {
+                      <span class="badge-spotlight-sub">{{ ejActivo.subcategoria }}</span>
+                    }
+                    <span class="badge-spotlight-estado" [class.progreso]="ejActivo.estadoProgreso === 'PROGRESO'" [class.optimo]="ejActivo.estadoProgreso === 'OPTIMO'" [class.estancado]="ejActivo.estadoProgreso === 'ESTANCADO'">
+                      {{ ejActivo.estadoProgreso === 'PROGRESO' ? '🚀 En Progresión Fuerte' : (ejActivo.estadoProgreso === 'OPTIMO' ? '✅ Carga en Rango Óptimo' : '⚠️ Sin Carga / Por Ajustar') }}
+                    </span>
+                  </div>
+                  <h3 class="spotlight-titulo">{{ ejActivo.nombre }}</h3>
+                  <span class="spotlight-rutina-tag">Asignado a: {{ ejActivo.rutinaNombre }} ({{ ejActivo.dias.join(', ') || 'Sin día fijo' }})</span>
+                </div>
+              </div>
+
+              <!-- KPIS DE FUERZA Y SOBRECARGA -->
+              <div class="spotlight-kpis-grid">
+                <div class="kpi-sc-box kpi-sc-peso">
+                  <span class="kpi-sc-icon">🏋️</span>
+                  <div class="kpi-sc-info">
+                    <span class="kpi-sc-val">{{ ejActivo.pesoMax }} <small>{{ acc.unidadPeso() }}</small></span>
+                    <span class="kpi-sc-lbl">Carga Total Actual</span>
+                    <span class="kpi-sc-hint">Suma total levantada</span>
+                  </div>
+                </div>
+
+                <div class="kpi-sc-box kpi-sc-1rm">
+                  <span class="kpi-sc-icon">⚡</span>
+                  <div class="kpi-sc-info">
+                    <span class="kpi-sc-val">{{ ejActivo.unRM }} <small>{{ acc.unidadPeso() }}</small></span>
+                    <span class="kpi-sc-lbl">1RM Máximo Estimado</span>
+                    <span class="kpi-sc-hint">Fórmula Epley (Fuerza Pura)</span>
+                  </div>
+                </div>
+
+                <div class="kpi-sc-box kpi-sc-volumen">
+                  <span class="kpi-sc-icon">📊</span>
+                  <div class="kpi-sc-info">
+                    <span class="kpi-sc-val">{{ ejActivo.volumenTotal }} <small>{{ acc.unidadPeso() }}</small></span>
+                    <span class="kpi-sc-lbl">Tonelaje por Sesión</span>
+                    <span class="kpi-sc-hint">{{ ejActivo.series }} series × {{ ejActivo.reps }} reps</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- 4. COMPARATIVA DE CARGAS EN LA CATEGORÍA -->
+          <div class="sobrecarga-lista-wrap">
+            <h4 class="subtitulo-sc-lista">Comparativa de Cargas en {{ filtroGrupoMuscular() }}:</h4>
+            <div class="sobrecarga-lista">
+              @for (item of ejerciciosFiltradosProgreso(); track (item.nombre + '_' + $index)) {
+                <div class="sobrecarga-item" 
+                     [class.item-activo]="ejercicioActivoDetalle()?.nombre === item.nombre"
+                     (click)="seleccionarEjercicioProgreso(item.nombre)">
+                  <div class="sobrecarga-nombre">
+                    <span class="sc-icon">🎯</span>
+                    <div class="sc-text-wrap">
+                      <span class="sc-main-nom">{{ item.nombre }}</span>
+                      <span class="sc-sub-cat">{{ item.grupoMuscular }}</span>
+                    </div>
+                  </div>
+                  <div class="sobrecarga-stats">
+                    <span class="sc-peso">{{ item.pesoMax }} {{ acc.unidadPeso() }}</span>
+                    <span class="sc-config">{{ item.series }} series × {{ item.reps }} reps</span>
+                  </div>
+                  <div class="sobrecarga-barra-wrap">
+                    <div class="sobrecarga-barra" [style.width.%]="ejerciciosFiltradosProgreso()[0].pesoMax > 0 ? (item.pesoMax / ejerciciosFiltradosProgreso()[0].pesoMax * 100) : 0"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- SECCIÓN: CENTRO DE ORIENTACIÓN & SUPERACIÓN DE ESTANCAMIENTO -->
+      <div class="perfil-seccion-caja dashboard-seccion orientacion-seccion-card">
+        <div class="seccion-header-flex">
+          <div>
+            <h2>💡 Centro de Orientación: ¿No estás subiendo de peso?</h2>
+            <p class="dashboard-desc">Guía científica y métodos comprobados para romper el estancamiento y cumplir la sobrecarga progresiva.</p>
+          </div>
+        </div>
+
+        <!-- Alerta Inteligente de Ejercicios por Mejorar -->
+        @if (ejerciciosEstancados().length > 0) {
+          <div class="alerta-estancamiento-box">
+            <div class="aeb-icon">⚠️</div>
+            <div class="aeb-content">
+              <strong>Ejercicios que requieren impulso o ajuste de peso:</strong>
+              <div class="aeb-chips">
+                @for (ej of ejerciciosEstancados(); track ej.nombre) {
+                  <span class="chip-estancado" (click)="seleccionarEjercicioProgreso(ej.nombre); cambiarPestana('DASHBOARD')">
+                    {{ ej.nombre }} ({{ ej.pesoMax === 0 ? 'Sin peso' : ej.pesoMax + acc.unidadPeso() }})
+                  </span>
+                }
+              </div>
+              <p class="aeb-sugerencia">Aplica las estrategias que te mostramos a continuación para reiniciar tu progresión en estos levantamientos.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Tarjetas con las 5 Estrategias Científicas de Sobrecarga Progresiva -->
+        <div class="estrategias-grid">
+          @for (est of estrategiasSobrecarga; track est.titulo) {
+            <div class="estrategia-card">
+              <div class="est-header">
+                <span class="est-icon">{{ est.icono }}</span>
+                <div>
+                  <h4>{{ est.titulo }}</h4>
+                  <span class="est-sub">{{ est.subtitulo }}</span>
+                </div>
+              </div>
+              <p class="est-desc">{{ est.descripcion }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- SECCIÓN: DISTRIBUCIÓN Y BALANCE MUSCULAR -->
+      <div class="perfil-seccion-caja dashboard-seccion">
+        <h2>🎯 Distribución & Balance Muscular</h2>
+        <p class="dashboard-desc">Frecuencia y proporción de grupos musculares trabajados en tu programa actual.</p>
+        
+        <div class="musculos-grid-bars">
+          @for (m of distribucionMuscular(); track (m.categoria + '_' + $index)) {
+            <div class="musculo-bar-row">
+              <div class="m-row-header">
+                <span class="m-cat-nom">{{ m.categoria }}</span>
+                <span class="m-cat-count">{{ m.conteo }} ejercicios ({{ m.porcentaje }}%)</span>
+              </div>
+              <div class="m-bar-bg">
+                <div class="m-bar-fill" [style.width.%]="m.porcentaje"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ACCESOS DIRECTOS INFERIORES -->
+      <div class="accesos-directos-grid">
+        <button class="card-acceso-btn btn-touch-accessible" (click)="cambiarPestana('PROGRESO')">
+          <span class="acceso-icon">📷</span>
+          <div class="acceso-info">
+            <span class="acceso-titulo">Fotos y Peso</span>
+            <span class="acceso-sub">Registra y sube tus fotos de evolución física</span>
+          </div>
+          <span class="acceso-arrow">›</span>
+        </button>
+
+        <button class="card-acceso-btn btn-touch-accessible" (click)="cambiarPestana('HISTORIAL')">
+          <span class="acceso-icon">📜</span>
+          <div class="acceso-info">
+            <span class="acceso-titulo">Historial de Sesiones</span>
+            <span class="acceso-sub">Revisa entrenamientos, duración y calorías</span>
+          </div>
+          <span class="acceso-arrow">›</span>
+        </button>
+
+        <button class="card-acceso-btn btn-touch-accessible" (click)="abrirAjustes('DATOS')">
+          <span class="acceso-icon">👤</span>
+          <div class="acceso-info">
+            <span class="acceso-titulo">Datos del Perfil</span>
+            <span class="acceso-sub">Nombre, correo y preferencias anatómicas</span>
+          </div>
+          <span class="acceso-arrow">›</span>
+        </button>
+
+        <button class="card-acceso-btn btn-touch-accessible" (click)="abrirAjustes('PRINCIPAL')">
+          <span class="acceso-icon">⚙️</span>
+          <div class="acceso-info">
+            <span class="acceso-titulo">Ajustes & Accesibilidad</span>
+            <span class="acceso-sub">Tema, colores de resaltado, fuentes e idioma</span>
+          </div>
+          <span class="acceso-arrow">›</span>
+        </button>
+      </div>
+
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- 5. VISTA: FOTOS Y PESO (PROGRESO FÍSICO)                       -->
+  <!-- ============================================================== -->
+  @if (pestanaActiva() === 'PROGRESO') {
+    <div class="pantalla-progreso animate-fade-in">
+      
+      <div class="perfil-seccion-caja">
+        <div class="seccion-header-flex">
+          <h2>📷 Registrar Nuevo Peso y Foto</h2>
+          <button class="btn-volver-dashboard btn-touch-accessible" (click)="cambiarPestana('DASHBOARD')">
+            ← Volver al Progreso
+          </button>
+        </div>
+
+        <form [formGroup]="progresoForm" (ngSubmit)="subirFotoProgreso()" class="form-progreso-registro">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="pesoKg">Peso Actual ({{ acc.unidadPeso() }})</label>
+              <input type="number" id="pesoKg" formControlName="pesoKg" placeholder="Ej. 74.5" step="0.1">
+            </div>
+            <div class="form-group flex-1">
+              <label for="objetivoFase">Meta / Fase Actual</label>
+              <select id="objetivoFase" formControlName="objetivoFase">
+                <option value="MANTENIMIENTO">Mantenimiento (Recomposición)</option>
+                <option value="DEFICIT">Déficit (Pérdida de Grasa)</option>
+                <option value="VOLUMEN_LIMPIO">Volumen Limpio (Lean Bulk)</option>
+                <option value="VOLUMEN_SUCIO">Volumen Sucio (Dirty Bulk)</option>
+              </select>
+            </div>
+            <div class="form-group flex-2">
+              <label for="imagenUrl">URL de Foto (Opcional)</label>
+              <input type="text" id="imagenUrl" formControlName="imagenUrl" placeholder="https://ejemplo.com/foto.jpg">
+            </div>
+          </div>
+          <button type="submit" class="btn-guardar btn-touch-accessible" [disabled]="progresoForm.invalid || procesandoFoto()">
+            {{ procesandoFoto() ? 'Registrando...' : 'Agregar Registro' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Galería de Fotos -->
+      <h2>Galería de Evolución Física</h2>
+      @if (fotos().length === 0) {
+        <div class="no-progreso-caja">
+          <span class="icon">📸</span>
+          <h3>Aún no has registrado fotos de progreso</h3>
+          <p>Comienza a registrar tu peso semanal y sube tus fotos para ver tu evolución física a lo largo del tiempo.</p>
+        </div>
+      } @else {
+        <div class="fotos-progreso-grid">
+          @for (foto of fotos(); track foto.id) {
+            <div class="foto-card">
+              <div class="foto-img-box">
+                <img [src]="foto.imagenUrl" alt="Progreso Físico">
+              </div>
+              <div class="foto-info">
+                <span class="foto-peso">{{ foto.pesoKg }} {{ acc.unidadPeso() }}</span>
+                <span class="foto-fecha">{{ foto.fecha | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- 6. VISTA: HISTORIAL DE ENTRENAMIENTOS                          -->
+  <!-- ============================================================== -->
+  @if (pestanaActiva() === 'HISTORIAL') {
+    <div class="pantalla-historial animate-fade-in">
+      <div class="seccion-header-flex">
+        <div>
+          <h2>📜 Historial de Sesiones Completadas</h2>
+          <p class="desc-seccion">Tus últimas sesiones de esfuerzo y calorías registradas en el reproductor.</p>
+        </div>
+        <button class="btn-volver-dashboard btn-touch-accessible" (click)="cambiarPestana('DASHBOARD')">
+          ← Volver al Progreso
+        </button>
+      </div>
+
+      @if (entrenamientos().length === 0) {
+        <div class="no-historial-caja">
+          <span class="icon">🏃‍♂️</span>
+          <h3>No hay entrenamientos registrados</h3>
+          <p>Tus entrenamientos aparecerán aquí automáticamente en cuanto completes una rutina en el centro de entrenamiento.</p>
+        </div>
+      } @else {
+        <div class="entrenamientos-lista">
+          @for (e of entrenamientos(); track e.id) {
+            <div class="entrenamiento-log-card">
+              <div class="log-detalles">
+                <span class="log-fecha">{{ e.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                <h3>{{ e.rutina?.nombre || 'Entrenamiento Libre' }}</h3>
+                <span class="log-nivel" [ngClass]="e.rutina?.nivelDificultad?.toLowerCase() || ''">
+                  {{ e.rutina?.nivelDificultad || 'Básico' }}
+                </span>
+              </div>
+              <div class="log-stats">
+                <div class="log-stat-item">
+                  <span class="val">{{ e.duracionMinutos }} min</span>
+                  <span class="lbl">Duración</span>
+                </div>
+                <div class="log-stat-item kcal">
+                  <span class="val">{{ e.caloriasQuemadas }}</span>
+                  <span class="lbl">Kcal</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>

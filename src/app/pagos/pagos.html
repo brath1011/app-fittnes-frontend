@@ -1,0 +1,207 @@
+<div class="pagos-membresias-container">
+  <div class="seccion-cabecera">
+    <h1>Suscripción Premium</h1>
+    <p>Desbloquea el máximo potencial de tus entrenamientos y lleva un registro detallado de tu desarrollo.</p>
+  </div>
+
+  <!-- CONSOLA DE PRUEBAS - SIMULADOR DE PLANES -->
+  <div class="consola-pruebas-plan">
+    <div class="consola-header">
+      <span class="badge-sandbox">🛠️ MODO DESARROLLADOR</span>
+      <h3>Simulador de Plan Activo</h3>
+      <p>Utiliza estos controles para cambiar rápidamente de plan y verificar cómo cambian las limitaciones en el reproductor de entrenamiento.</p>
+    </div>
+    <div class="consola-acciones">
+      <div class="plan-indicator">
+        Plan Activo: 
+        <strong [class.plan-pro]="auth.plan() === 'PRO'" [class.plan-gratis]="auth.plan() === 'GRATIS'">
+          {{ auth.plan() === 'PRO' ? '💎 PREMIUM (PRO)' : '⏳ BÁSICO (GRATIS)' }}
+        </strong>
+      </div>
+      <div class="botones-switch">
+        <button type="button" 
+                class="btn-switch gratis" 
+                [class.activo]="auth.plan() === 'GRATIS'"
+                (click)="auth.cambiarPlan('GRATIS')">
+          Cambiar a Plan Gratis
+        </button>
+        <button type="button" 
+                class="btn-switch pro" 
+                [class.activo]="auth.plan() === 'PRO'"
+                (click)="auth.cambiarPlan('PRO')">
+          Cambiar a Plan Premium
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (mensajeExito()) {
+    <div class="alerta alerta-exito">
+      {{ mensajeExito() }}
+    </div>
+  }
+
+  @if (mensajeError()) {
+    <div class="alerta alerta-error">
+      {{ mensajeError() }}
+    </div>
+  }
+
+  <!-- Planes de Membresía -->
+  <div class="planes-grid">
+    <!-- Plan Básico -->
+    <div class="plan-card">
+      <div class="plan-header">
+        <h3>Plan Básico</h3>
+        <p class="precio">S/ 0.00 <span class="mes">/ mes</span></p>
+      </div>
+      <ul class="plan-beneficios">
+        <li>✔️ Crear y gestionar tus rutinas</li>
+        <li>✔️ Ver catálogo de ejercicios</li>
+        <li>✔️ Reproductor de entrenamiento básico</li>
+        <li>❌ Gráficos de progreso físico</li>
+        <li>❌ Fotos de progreso y registro de peso</li>
+        <li>❌ Boletas de pago electrónicas</li>
+      </ul>
+      <button class="btn-plan secundario" disabled>Plan Activo por Defecto</button>
+    </div>
+
+    <!-- Plan Premium -->
+    <div class="plan-card premium">
+      <div class="premium-badge">RECOMENDADO</div>
+      <div class="plan-header">
+        <h3>Plan Premium</h3>
+        <p class="precio">S/ 29.90 <span class="mes">/ mes</span></p>
+      </div>
+      <ul class="plan-beneficios">
+        <li>✔️ Todo lo del Plan Básico</li>
+        <li>✔️ Almacenamiento de Fotos de Progreso</li>
+        <li>✔️ Historial de pesos y gráficos interactivos</li>
+        <li>✔️ Temporizador de descanso unilateral</li>
+        <li>✔️ Generación y envío automático de boletas en PDF</li>
+        <li>✔️ Soporte prioritario por correo</li>
+      </ul>
+      <button class="btn-plan" (click)="abrirPasarela()">
+        💎 Adquirir Plan Premium
+      </button>
+    </div>
+  </div>
+
+  <!-- Historial de Boletas / Transacciones -->
+  <div class="historial-boletas-seccion">
+    <h2>Historial de Pagos y Boletas</h2>
+    <p class="sub-seccion">Consulta y descarga los recibos de tus transacciones realizadas en la plataforma.</p>
+
+    @if (boletas().length === 0) {
+      <div class="no-boletas">
+        <span class="icon">🧾</span>
+        <h3>Sin transacciones registradas</h3>
+        <p>Cuando adquieras tu plan Premium, verás el listado de tus boletas electrónicas aquí.</p>
+      </div>
+    } @else {
+      <div class="tabla-container">
+        <table class="tabla-boletas">
+          <thead>
+            <tr>
+              <th>Nro Boleta</th>
+              <th>Fecha de Emisión</th>
+              <th>Monto</th>
+              <th>Método de Pago</th>
+              <th>Estado de Envío</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (boleta of boletas(); track boleta.id) {
+              <tr>
+                <td><strong>{{ boleta.nroBoleta }}</strong></td>
+                <td>{{ boleta.fechaEmision | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>S/ {{ boleta.pago?.monto }}</td>
+                <td><span class="metodo-badge">{{ boleta.pago?.metodoPago }}</span></td>
+                <td>
+                  <span class="envio-badge" [class.enviado]="boleta.enviadoPorCorreo">
+                    {{ boleta.enviadoPorCorreo ? 'Enviado por correo' : 'Pendiente de envío' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="acciones-tabla">
+                    @if (boleta.pdfUrl) {
+                      <a [href]="boleta.pdfUrl" target="_blank" class="btn-accion desc">Descargar TXT</a>
+                    }
+                    <button class="btn-accion reenviar" (click)="solicitarReenvio(boleta)">
+                      Reenviar Correo
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- MODAL PASARELA DE PAGOS -->
+  @if (mostrarFormularioPago()) {
+    <div class="modal-overlay" (click)="cerrarPasarela()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="btn-cerrar-modal" (click)="cerrarPasarela()">&times;</button>
+        
+        <h2>Simulación de Pasarela de Pagos</h2>
+        <p class="modal-desc">Estás por adquirir la Suscripción Premium por <b>S/ 29.90</b>.</p>
+
+        <form [formGroup]="pagoForm" (ngSubmit)="realizarPagoSimulado()" class="formulario-pasarela">
+          <!-- Método de pago -->
+          <div class="form-group">
+            <label>Método de Pago</label>
+            <div class="metodo-pago-selector">
+              <label>
+                <input type="radio" value="TARJETA" formControlName="metodoPago">
+                💳 Tarjeta Crédito/Débito
+              </label>
+              <label>
+                <input type="radio" value="PAYPAL" formControlName="metodoPago">
+                🅿️ PayPal
+              </label>
+              <label>
+                <input type="radio" value="SIMULADOR" formControlName="metodoPago">
+                🤖 Simulador Sandbox
+              </label>
+            </div>
+          </div>
+
+          <!-- Titular -->
+          <div class="form-group">
+            <label for="nombreTitular">Nombre del Titular</label>
+            <input type="text" id="nombreTitular" formControlName="nombreTitular" placeholder="Ej. Juan Pérez">
+          </div>
+
+          <!-- Número Tarjeta -->
+          <div class="form-group">
+            <label for="nroTarjeta">Número de Tarjeta (16 dígitos)</label>
+            <input type="text" id="nroTarjeta" formControlName="nroTarjeta" placeholder="4111 2222 3333 4444" maxlength="16">
+          </div>
+
+          <!-- Expiración y CVV -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="expiracion">Vencimiento (MM/AA)</label>
+              <input type="text" id="expiracion" formControlName="expiracion" placeholder="12/28" maxlength="5">
+            </div>
+            <div class="form-group flex-1">
+              <label for="cvv">CVV (3 dígitos)</label>
+              <input type="password" id="cvv" formControlName="cvv" placeholder="123" maxlength="3">
+            </div>
+          </div>
+
+          <div class="modal-acciones">
+            <button type="button" class="btn-cancelar" (click)="cerrarPasarela()">Cancelar</button>
+            <button type="submit" class="btn-pagar" [disabled]="pagoForm.invalid || procesando()">
+              {{ procesando() ? 'Procesando pago...' : 'Pagar S/ 29.90' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>
